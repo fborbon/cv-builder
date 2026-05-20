@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+@page { margin: 25mm 22mm; size: A4; }
+@media screen { body { padding: 25mm 22mm; } }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Georgia, 'Times New Roman', serif; font-size: 11pt; color: #1a1a1a; line-height: 1.65; }
+
+.sender { margin-bottom: 1.8rem; }
+.sender-name  { font-size: 17pt; font-weight: bold; color: #1e3a5f; letter-spacing: .3px; }
+.sender-title { font-size: 10pt; color: #555; margin-top: .2rem; }
+.sender-contact {
+  font-size: 9pt; color: #555; margin-top: .45rem;
+  display: flex; flex-wrap: wrap; gap: .2rem .8rem;
+}
+.divider { border: none; border-top: 1px solid #ccc; margin: .8rem 0 1.5rem; }
+
+.date { font-size: 10.5pt; margin-bottom: 1.5rem; color: #333; }
+
+.subject { font-weight: bold; font-size: 10.5pt; margin-bottom: 1.2rem; }
+
+.salutation { margin-bottom: 1rem; }
+
+.body { white-space: pre-wrap; font-size: 10.5pt; line-height: 1.7; }
+
+.closing { margin-top: 2rem; font-size: 10.5pt; }
+.closing .farewell { margin-bottom: 2.5rem; }
+.closing .sig-name  { font-weight: bold; font-size: 11pt; }
+.closing .sig-title { font-size: 10pt; color: #555; margin-top: .2rem; }
+</style>
+</head>
+<body>
+
+<div class="sender">
+  <div class="sender-name">{{ personal.name }}</div>
+  {% if personal.title %}<div class="sender-title">{{ personal.title }}</div>{% endif %}
+  <div class="sender-contact">
+    {% if personal.email   %}<span>{{ personal.email }}</span>{% endif %}
+    {% if personal.phone   %}<span>·</span><span>{{ personal.phone }}</span>{% endif %}
+    {% if personal.location%}<span>·</span><span>{{ personal.location }}</span>{% endif %}
+    {% if personal.linkedin%}<span>·</span><span>{{ personal.linkedin }}</span>{% endif %}
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="date">{{ date_str }}</div>
+
+{% if company or position %}
+<div class="subject">Re: Application for {{ position }}{% if company %} — {{ company }}{% endif %}</div>
+{% endif %}
+
+<div class="salutation">Dear {{ recipient }},</div>
+
+<div class="body">{{ body_text }}</div>
+
+<div class="closing">
+  <div class="farewell">Yours sincerely,</div>
+  <div class="sig-name">{{ personal.name }}</div>
+  {% if personal.title %}<div class="sig-title">{{ personal.title }}</div>{% endif %}
+</div>
+
+</body>
+</html>

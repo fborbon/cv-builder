@@ -1,0 +1,22 @@
+# Personal CV data — never commit real data
+data/cv.json
+static/uploads/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.env
+
+# PDF source
+*.pdf
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

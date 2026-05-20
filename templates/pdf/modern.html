@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+@page { margin: 0; size: A4; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e293b; display: flex; min-height: 297mm; }
+
+/* Left column */
+.left {
+  width: 72mm; background: #1e3a5f; color: #e2e8f0;
+  padding: 10mm 7mm;
+  flex-shrink: 0;
+}
+.photo { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid #60a5fa; display: block; margin: 0 auto 1rem; }
+.name { font-size: 14pt; font-weight: 700; color: #fff; text-align: center; line-height: 1.2; }
+.job-title { font-size: 8.5pt; color: #93c5fd; text-align: center; margin-top: .25rem; letter-spacing: .5px; }
+
+.l-section { margin-top: 1.1rem; }
+.l-label { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #93c5fd; border-bottom: 1px solid #3b82f6; padding-bottom: .2rem; margin-bottom: .5rem; }
+.l-line { font-size: 8.5pt; color: #e2e8f0; margin-bottom: .3rem; word-break: break-all; }
+.l-line strong { color: #fff; display: block; }
+
+.skill-block { margin-bottom: .5rem; }
+.skill-name { font-size: 8.5pt; color: #e2e8f0; margin-bottom: .15rem; }
+.skill-bar-bg { background: #2d4f7c; border-radius: 99px; height: 5px; }
+.skill-bar { background: #60a5fa; border-radius: 99px; height: 5px; }
+
+/* Right column */
+.right { flex: 1; padding: 10mm 8mm; }
+
+.section { margin-bottom: 1rem; }
+.sec-title {
+  font-size: 9.5pt; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: #1e3a5f;
+  border-bottom: 2px solid #3b82f6; padding-bottom: .2rem; margin-bottom: .6rem;
+}
+
+.summary { font-size: 9.5pt; color: #475569; line-height: 1.55; }
+
+.entry { margin-bottom: .75rem; }
+.entry-row { display: flex; justify-content: space-between; align-items: baseline; }
+.entry-title { font-weight: 700; font-size: 10pt; color: #0f172a; }
+.entry-date  { font-size: 8.5pt; color: #64748b; white-space: nowrap; background: #f1f5f9; padding: .1rem .4rem; border-radius: 99px; }
+.entry-co    { font-size: 9pt; color: #3b82f6; font-weight: 600; }
+.entry-body  { font-size: 9pt; color: #475569; margin-top: .2rem; line-height: 1.45; }
+
+.tags { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .3rem; }
+.tag { background: #dbeafe; color: #1d4ed8; font-size: 7.5pt; padding: .1rem .45rem; border-radius: 99px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: .3rem; }
+</style>
+</head>
+<body>
+
+<!-- LEFT COLUMN -->
+<div class="left">
+  {% if photo_b64 %}<img class="photo" src="{{ photo_b64 }}">{% endif %}
+  <div class="name">{{ cv.personal.name }}</div>
+  {% if cv.personal.title %}<div class="job-title">{{ cv.personal.title }}</div>{% endif %}
+
+  <!-- Contact -->
+  <div class="l-section">
+    <div class="l-label">Contact</div>
+    {% if cv.personal.email %}<div class="l-line">{{ cv.personal.email }}</div>{% endif %}
+    {% if cv.personal.phone %}<div class="l-line">{{ cv.personal.phone }}</div>{% endif %}
+    {% if cv.personal.location %}<div class="l-line">{{ cv.personal.location }}</div>{% endif %}
+    {% if cv.personal.linkedin %}<div class="l-line">{{ cv.personal.linkedin }}</div>{% endif %}
+    {% if cv.personal.github %}<div class="l-line">{{ cv.personal.github }}</div>{% endif %}
+  </div>
+
+  <!-- Skills -->
+  {% if cv.skills %}
+  <div class="l-section">
+    <div class="l-label">Skills</div>
+    {% for s in cv.skills %}
+    <div class="skill-block">
+      <div class="skill-name" style="font-weight:700;color:#93c5fd;margin-bottom:.2rem">{{ s.category }}</div>
+      {% for item in s['items'] %}
+      <div class="l-line">· {{ item }}</div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Languages -->
+  {% if cv.languages %}
+  <div class="l-section">
+    <div class="l-label">Languages</div>
+    {% for l in cv.languages %}
+    <div class="l-line"><strong>{{ l.language }}</strong>{{ l.level }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- RIGHT COLUMN -->
+<div class="right">
+
+  <!-- Summary -->
+  {% if cv.personal.summary %}
+  <div class="section">
+    <div class="sec-title">About</div>
+    <p class="summary">{{ cv.personal.summary }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Experience -->
+  {% if cv.experience %}
+  <div class="section">
+    <div class="sec-title">Work Experience</div>
+    {% for e in cv.experience %}
+    <div class="entry">
+      <div class="entry-row">
+        <span class="entry-title">{{ e.position }}</span>
+        <span class="entry-date">{{ e.start_date | replace('-', '/') }} – {{ 'Present' if e.current else (e.end_date | replace('-', '/')) }}</span>
+      </div>
+      <div class="entry-co">{{ e.company }}{% if e.location %} · {{ e.location }}{% endif %}</div>
+      {% if e.description %}<div class="entry-body">{{ e.description }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Education -->
+  {% if cv.education %}
+  <div class="section">
+    <div class="sec-title">Education</div>
+    {% for e in cv.education %}
+    <div class="entry">
+      <div class="entry-row">
+        <span class="entry-title">{{ e.degree }} — {{ e.field }}</span>
+        <span class="entry-date">{{ e.end_date }}</span>
+      </div>
+      <div class="entry-co">{{ e.institution }}{% if e.grade %} · {{ e.grade }}{% endif %}</div>
+      {% if e.description %}<div class="entry-body">{{ e.description }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Certifications -->
+  {% if cv.certifications %}
+  <div class="section">
+    <div class="sec-title">Certifications</div>
+    <div class="two-col">
+    {% for c in cv.certifications %}
+    <div class="entry" style="margin-bottom:.4rem">
+      <div style="font-weight:600;font-size:9pt">{{ c.name }}</div>
+      {% if c.issuer %}<div style="font-size:8.5pt;color:#64748b">{{ c.issuer }}{% if c.date %} · {{ c.date | replace('-','/') }}{% endif %}</div>{% endif %}
+    </div>
+    {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Projects -->
+  {% if cv.projects %}
+  <div class="section">
+    <div class="sec-title">Projects</div>
+    {% for p in cv.projects %}
+    <div class="entry">
+      <div class="entry-row">
+        <span class="entry-title">{{ p.name }}</span>
+        {% if p.url %}<span style="font-size:8pt;color:#3b82f6">{{ p.url }}</span>{% endif %}
+      </div>
+      {% if p.description %}<div class="entry-body">{{ p.description }}</div>{% endif %}
+      {% if p.technologies %}<div class="tags">{% for t in p.technologies %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+</body>
+</html>

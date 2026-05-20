@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+@page { margin: 15mm 18mm; size: A4; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Georgia, 'Times New Roman', serif; font-size: 10.5pt; color: #1c1c1c; }
+/* Simulate @page margins in browser. The header's margin:-15mm -18mm cancels this so it still bleeds. */
+@media screen { body { padding: 15mm 18mm; } }
+
+/* Header */
+.header { background: #1c2b4a; color: #fff; padding: 10mm 12mm; display: flex; align-items: center; gap: 1rem; margin: -15mm -18mm 0; }
+.photo { width: 80px; height: 80px; border-radius: 4px; object-fit: cover; border: 2px solid #c8a96e; flex-shrink: 0; }
+.header-body { flex: 1; }
+.name { font-size: 22pt; font-weight: bold; letter-spacing: 1px; color: #fff; }
+.title { font-size: 10pt; color: #c8a96e; letter-spacing: 2px; text-transform: uppercase; margin-top: .2rem; }
+.contact-bar { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; margin-top: .5rem; font-size: 8.5pt; color: #c8d8e8; }
+
+/* Body */
+.body { padding-top: 1rem; }
+
+.section { margin-bottom: 1rem; }
+.sec-title {
+  font-size: 9pt; font-weight: bold; text-transform: uppercase;
+  letter-spacing: 2px; color: #1c2b4a;
+  border-top: 2px solid #c8a96e;
+  padding-top: .35rem; margin-bottom: .6rem;
+}
+
+.summary { font-size: 10pt; color: #333; line-height: 1.6; font-style: italic; }
+
+.entry { margin-bottom: .9rem; }
+.row { display: flex; justify-content: space-between; align-items: baseline; }
+.entry-title { font-weight: bold; font-size: 11pt; color: #1c2b4a; }
+.entry-date  { font-size: 9pt; color: #777; }
+.entry-co    { font-size: 9.5pt; color: #c8a96e; font-weight: bold; letter-spacing: .3px; }
+.entry-body  { font-size: 9.5pt; color: #444; margin-top: .25rem; line-height: 1.5; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: .3rem 1.5rem; }
+
+.skill-row { margin-bottom: .35rem; font-size: 9.5pt; }
+.skill-label { color: #1c2b4a; font-weight: bold; }
+.skill-items { color: #444; }
+
+.lang-item { font-size: 9.5pt; margin-bottom: .25rem; }
+.cert-item  { font-size: 9.5pt; margin-bottom: .35rem; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  {% if photo_b64 %}<img class="photo" src="{{ photo_b64 }}">{% endif %}
+  <div class="header-body">
+    <div class="name">{{ cv.personal.name }}</div>
+    {% if cv.personal.title %}<div class="title">{{ cv.personal.title }}</div>{% endif %}
+    <div class="contact-bar">
+      {% if cv.personal.email %}<span>✉ {{ cv.personal.email }}</span>{% endif %}
+      {% if cv.personal.phone %}<span>✆ {{ cv.personal.phone }}</span>{% endif %}
+      {% if cv.personal.location %}<span>⚲ {{ cv.personal.location }}</span>{% endif %}
+      {% if cv.personal.linkedin %}<span>in {{ cv.personal.linkedin }}</span>{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="body">
+
+  {% if cv.personal.summary %}
+  <div class="section">
+    <div class="sec-title">Executive Profile</div>
+    <p class="summary">{{ cv.personal.summary }}</p>
+  </div>
+  {% endif %}
+
+  {% if cv.experience %}
+  <div class="section">
+    <div class="sec-title">Professional Experience</div>
+    {% for e in cv.experience %}
+    <div class="entry">
+      <div class="row">
+        <span class="entry-title">{{ e.position }}</span>
+        <span class="entry-date">{{ e.start_date | replace('-', ' / ') }} – {{ 'Present' if e.current else (e.end_date | replace('-', ' / ')) }}</span>
+      </div>
+      <div class="entry-co">{{ e.company }}{% if e.location %} &nbsp;·&nbsp; {{ e.location }}{% endif %}</div>
+      {% if e.description %}<div class="entry-body">{{ e.description }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if cv.education %}
+  <div class="section">
+    <div class="sec-title">Education</div>
+    {% for e in cv.education %}
+    <div class="entry">
+      <div class="row">
+        <span class="entry-title">{{ e.degree }}, {{ e.field }}</span>
+        <span class="entry-date">{{ e.end_date }}</span>
+      </div>
+      <div class="entry-co">{{ e.institution }}{% if e.grade %} &nbsp;·&nbsp; {{ e.grade }}{% endif %}</div>
+      {% if e.description %}<div class="entry-body">{{ e.description }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if cv.skills %}
+  <div class="section">
+    <div class="sec-title">Core Competencies</div>
+    {% for s in cv.skills %}
+    <div class="skill-row">
+      <span class="skill-label">{{ s.category }}: </span>
+      <span class="skill-items">{{ s['items'] | join(' &nbsp;·&nbsp; ') }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem">
+    <div>
+      {% if cv.certifications %}
+      <div class="section">
+        <div class="sec-title">Certifications</div>
+        {% for c in cv.certifications %}
+        <div class="cert-item">
+          <strong>{{ c.name }}</strong>
+          {% if c.issuer %}<span style="color:#666;font-size:9pt"> — {{ c.issuer }}{% if c.date %}, {{ c.date | replace('-','/') }}{% endif %}</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div>
+      {% if cv.languages %}
+      <div class="section">
+        <div class="sec-title">Languages</div>
+        {% for l in cv.languages %}
+        <div class="lang-item"><strong>{{ l.language }}</strong> — {{ l.level }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if cv.projects %}
+  <div class="section">
+    <div class="sec-title">Selected Projects</div>
+    {% for p in cv.projects %}
+    <div class="entry">
+      <div class="row">
+        <span class="entry-title">{{ p.name }}</span>
+        {% if p.url %}<span class="entry-date">{{ p.url }}</span>{% endif %}
+      </div>
+      {% if p.description %}<div class="entry-body">{{ p.description }}</div>{% endif %}
+      {% if p.technologies %}<div class="entry-body" style="margin-top:.2rem;font-style:italic">{{ p.technologies | join(' · ') }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+</body>
+</html>

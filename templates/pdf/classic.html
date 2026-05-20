@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+@page { margin: 18mm 20mm; size: A4; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Georgia, 'Times New Roman', serif; font-size: 10.5pt; color: #1a1a1a; line-height: 1.5; }
+/* Simulate @page margins in the browser preview (WeasyPrint uses 'print', ignores this) */
+@media screen { body { padding: 18mm 20mm; } }
+
+h1 { font-size: 22pt; font-weight: bold; letter-spacing: .5px; color: #1a1a1a; }
+h2 { font-size: 10pt; font-weight: normal; color: #444; letter-spacing: 2px; text-transform: uppercase; margin-top: .15rem; }
+
+.contact-line { font-size: 9pt; color: #444; margin-top: .4rem; }
+.contact-line span { margin: 0 .4rem; }
+.contact-line span:first-child { margin-left: 0; }
+
+.divider { border: none; border-top: 1.5px solid #1a1a1a; margin: 1rem 0 .6rem; }
+.section-title {
+  font-family: Georgia, serif; font-size: 10.5pt; font-weight: bold;
+  text-transform: uppercase; letter-spacing: 1.5px; color: #1a1a1a;
+  margin-bottom: .5rem;
+}
+
+.header { text-align: center; padding-bottom: .5rem; }
+.header-with-photo { display: flex; align-items: flex-start; gap: 1.2rem; }
+.photo { width: 80px; height: 80px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
+.header-text { flex: 1; }
+
+.summary { font-size: 10pt; color: #333; line-height: 1.55; margin-top: .5rem; }
+
+.entry { margin-bottom: .85rem; }
+.entry-header { display: flex; justify-content: space-between; align-items: baseline; }
+.entry-title  { font-weight: bold; font-size: 10.5pt; }
+.entry-date   { font-size: 9pt; color: #555; white-space: nowrap; }
+.entry-sub    { font-size: 9.5pt; color: #444; font-style: italic; }
+.entry-body   { font-size: 9.5pt; color: #333; margin-top: .25rem; }
+
+.skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem 1.5rem; }
+.skill-cat   { font-weight: bold; font-size: 9.5pt; }
+.skill-items { font-size: 9.5pt; color: #333; }
+
+.cert-list, .lang-list { column-count: 2; column-gap: 1rem; }
+.cert-item, .lang-item { font-size: 9.5pt; margin-bottom: .3rem; break-inside: avoid; }
+.cert-issuer { color: #555; font-size: 9pt; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header {% if photo_b64 %}header-with-photo{% endif %}">
+  {% if photo_b64 %}<img class="photo" src="{{ photo_b64 }}">{% endif %}
+  <div class="header-text" style="{% if not photo_b64 %}text-align:center{% endif %}">
+    <h1>{{ cv.personal.name | upper }}</h1>
+    {% if cv.personal.title %}<h2>{{ cv.personal.title }}</h2>{% endif %}
+    <div class="contact-line">
+      {% if cv.personal.email %}<span>{{ cv.personal.email }}</span>{% endif %}
+      {% if cv.personal.phone %}<span>·</span><span>{{ cv.personal.phone }}</span>{% endif %}
+      {% if cv.personal.location %}<span>·</span><span>{{ cv.personal.location }}</span>{% endif %}
+      {% if cv.personal.linkedin %}<span>·</span><span>{{ cv.personal.linkedin }}</span>{% endif %}
+    </div>
+    {% if cv.personal.summary %}
+    <p class="summary">{{ cv.personal.summary }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Experience -->
+{% if cv.experience %}
+<hr class="divider">
+<div class="section-title">Professional Experience</div>
+{% for e in cv.experience %}
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">{{ e.position }}</span>
+    <span class="entry-date">{{ e.start_date | replace('-', '/') }} – {{ 'Present' if e.current else (e.end_date | replace('-', '/')) }}</span>
+  </div>
+  <div class="entry-sub">{{ e.company }}{% if e.location %} · {{ e.location }}{% endif %}</div>
+  {% if e.description %}<div class="entry-body">{{ e.description }}</div>{% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Education -->
+{% if cv.education %}
+<hr class="divider">
+<div class="section-title">Education</div>
+{% for e in cv.education %}
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">{{ e.degree }} in {{ e.field }}</span>
+    <span class="entry-date">{{ e.end_date }}</span>
+  </div>
+  <div class="entry-sub">{{ e.institution }}{% if e.grade %} · {{ e.grade }}{% endif %}</div>
+  {% if e.description %}<div class="entry-body">{{ e.description }}</div>{% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Certifications -->
+{% if cv.certifications %}
+<hr class="divider">
+<div class="section-title">Certifications</div>
+<div class="cert-list">
+{% for c in cv.certifications %}
+<div class="cert-item">
+  <strong>{{ c.name }}</strong><br>
+  {% if c.issuer %}<span class="cert-issuer">{{ c.issuer }}{% if c.date %} · {{ c.date | replace('-', '/') }}{% endif %}</span>{% endif %}
+</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<!-- Skills -->
+{% if cv.skills %}
+<hr class="divider">
+<div class="section-title">Skills</div>
+<div class="skills-grid">
+{% for s in cv.skills %}
+<div>
+  <span class="skill-cat">{{ s.category }}: </span>
+  <span class="skill-items">{{ s['items'] | join(', ') }}</span>
+</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<!-- Languages -->
+{% if cv.languages %}
+<hr class="divider">
+<div class="section-title">Languages</div>
+<div class="lang-list">
+{% for l in cv.languages %}
+<div class="lang-item"><strong>{{ l.language }}</strong> — {{ l.level }}</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<!-- Projects -->
+{% if cv.projects %}
+<hr class="divider">
+<div class="section-title">Projects</div>
+{% for p in cv.projects %}
+<div class="entry">
+  <div class="entry-header">
+    <span class="entry-title">{{ p.name }}</span>
+    {% if p.url %}<span class="entry-date">{{ p.url }}</span>{% endif %}
+  </div>
+  {% if p.description %}<div class="entry-body">{{ p.description }}</div>{% endif %}
+  {% if p.technologies %}<div class="entry-body" style="margin-top:.2rem"><em>{{ p.technologies | join(' · ') }}</em></div>{% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+</body>
+</html>

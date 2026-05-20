@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CV Builder</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+
+<!-- Navbar (original design + section tabs) -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <button class="section-tab brand-tab active" data-apptab="cv">📄 CV Builder</button>
+    <button class="section-tab" data-apptab="letter">✉ Cover Letter</button>
+    <button class="section-tab" data-apptab="portfolio">🚀 Portfolio</button>
+  </div>
+  <!-- CV controls -->
+  <div class="navbar-actions" id="ctrl-cv">
+    <span class="save-indicator" id="save-indicator">✓ Saved</span>
+  </div>
+  <!-- Letter controls -->
+  <div class="navbar-actions" id="ctrl-letter" style="display:none">
+    <button class="btn btn-primary btn-sm" onclick="downloadLetterPDF()">⬇ Download Letter PDF</button>
+  </div>
+  <!-- Portfolio controls -->
+  <div class="navbar-actions" id="ctrl-portfolio" style="display:none">
+  </div>
+</nav>
+
+<!-- ═══ CV BUILDER TAB ══════════════════════════════ -->
+<div class="tab-pane active" id="pane-cv">
+<div class="layout" style="margin-top:0">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-label">Sections</div>
+    <a class="nav-item active" data-section="personal">
+      <span class="icon">👤</span> Personal Info
+    </a>
+    <a class="nav-item" data-section="experience">
+      <span class="icon">💼</span> Work Experience
+    </a>
+    <a class="nav-item" data-section="education">
+      <span class="icon">🎓</span> Education
+    </a>
+    <a class="nav-item" data-section="certifications">
+      <span class="icon">🏅</span> Certifications
+    </a>
+    <a class="nav-item" data-section="skills">
+      <span class="icon">⚡</span> Skills
+    </a>
+    <a class="nav-item" data-section="languages">
+      <span class="icon">🌐</span> Languages
+    </a>
+    <a class="nav-item" data-section="projects">
+      <span class="icon">🚀</span> Projects
+    </a>
+    <div class="divider" style="margin:.6rem 0"></div>
+    <a class="nav-item" data-section="preview">
+      <span class="icon">👁</span> Preview
+    </a>
+  </aside>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- ── PERSONAL INFO ───────────────────────────── -->
+    <section class="section active" id="section-personal">
+      <div class="section-header">
+        <div class="section-title">Personal Information</div>
+      </div>
+      <div class="card">
+        <div class="form-group" style="margin-bottom:1.2rem">
+          <label>Profile Photo</label>
+          <div class="photo-upload-area">
+            <div id="photo-preview-wrap">
+              <div class="photo-placeholder" id="photo-placeholder">👤</div>
+            </div>
+            <div>
+              <input type="file" id="photo-file" accept="image/jpeg,image/png,image/webp" style="display:none">
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('photo-file').click()">Upload photo</button>
+              <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626;margin-left:.4rem" id="remove-photo-btn" onclick="removePhoto()" style="display:none">Remove</button>
+              <p class="text-muted" style="margin-top:.4rem">JPG, PNG or WEBP · Recommended 300×300 px</p>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="p-name" placeholder="e.g. Jane Doe">
+          </div>
+          <div class="form-group">
+            <label>Professional Title</label>
+            <input type="text" id="p-title" placeholder="e.g. Senior Data Scientist">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="p-email" placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="p-phone" placeholder="+34 600 000 000">
+          </div>
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" id="p-location" placeholder="City, Country">
+          </div>
+          <div class="form-group">
+            <label>LinkedIn URL</label>
+            <input type="url" id="p-linkedin" placeholder="https://linkedin.com/in/yourname">
+          </div>
+          <div class="form-group">
+            <label>GitHub URL</label>
+            <input type="url" id="p-github" placeholder="https://github.com/yourname">
+          </div>
+          <div class="form-group">
+            <label>Website / Portfolio</label>
+            <input type="url" id="p-website" placeholder="https://yoursite.com">
+          </div>
+          <div class="form-group span-2">
+            <label>Professional Summary</label>
+            <textarea id="p-summary" rows="4" placeholder="Brief professional summary…"></textarea>
+          </div>
+        </div>
+        <div style="margin-top:1rem;text-align:right">
+          <button class="btn btn-success" onclick="savePersonal()">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── WORK EXPERIENCE ─────────────────────────── -->
+    <section class="section" id="section-experience">
+      <div class="section-header">
+        <div class="section-title">Work Experience</div>
+        <button class="btn btn-success btn-sm" onclick="openExpModal()">+ Add</button>
+      </div>
+      <div id="experience-list"></div>
+    </section>
+
+    <!-- ── EDUCATION ───────────────────────────────── -->
+    <section class="section" id="section-education">
+      <div class="section-header">
+        <div class="section-title">Academic Record</div>
+        <button class="btn btn-success btn-sm" onclick="openEduModal()">+ Add</button>
+      </div>
+      <div id="education-list"></div>
+    </section>
+
+    <!-- ── CERTIFICATIONS ──────────────────────────── -->
+    <section class="section" id="section-certifications">
+      <div class="section-header">
+        <div class="section-title">Certifications</div>
+        <button class="btn btn-success btn-sm" onclick="openCertModal()">+ Add</button>
+      </div>
+      <div id="certifications-list"></div>
+    </section>
+
+    <!-- ── SKILLS ──────────────────────────────────── -->
+    <section class="section" id="section-skills">
+      <div class="section-header">
+        <div class="section-title">Skills</div>
+        <button class="btn btn-success btn-sm" onclick="openSkillModal()">+ Add Category</button>
+      </div>
+      <div id="skills-list"></div>
+    </section>
+
+    <!-- ── LANGUAGES ───────────────────────────────── -->
+    <section class="section" id="section-languages">
+      <div class="section-header">
+        <div class="section-title">Languages</div>
+        <button class="btn btn-success btn-sm" onclick="openLangModal()">+ Add</button>
+      </div>
+      <div id="languages-list"></div>
+    </section>
+
+    <!-- ── PROJECTS ────────────────────────────────── -->
+    <section class="section" id="section-projects">
+      <div class="section-header">
+        <div class="section-title">Projects</div>
+        <button class="btn btn-success btn-sm" onclick="openProjModal()">+ Add</button>
+      </div>
+      <div id="projects-list"></div>
+    </section>
+
+    <!-- ── PREVIEW ─────────────────────────────────── -->
+    <section class="section" id="section-preview">
+      <div class="section-header">
+        <div class="section-title">CV Preview</div>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <button class="btn btn-ghost btn-sm" id="zoom-out-btn" onclick="changeZoom(-0.1)">−</button>
+          <span id="zoom-label" style="font-size:.82rem;color:#64748b;min-width:3rem;text-align:center">100%</span>
+          <button class="btn btn-ghost btn-sm" id="zoom-in-btn" onclick="changeZoom(0.1)">+</button>
+          <button class="btn btn-ghost btn-sm" onclick="openPreviewTab()">↗ New tab</button>
+          <button class="btn btn-primary btn-sm" id="download-pdf-btn" onclick="generateFromPreview()">⬇ Download PDF</button>
+        </div>
+      </div>
+
+      <!-- Template pills -->
+      <div class="preview-tabs" id="preview-tabs">
+        {% for key, name in templates_list.items() %}
+        <button class="preview-tab {% if loop.first %}active{% endif %}"
+                data-tpl="{{ key }}"
+                onclick="loadPreview('{{ key }}')">{{ name }}</button>
+        {% endfor %}
+      </div>
+
+      <!-- Page mode row -->
+      <div class="page-mode-bar">
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span class="page-mode-label">Page limit:</span>
+          <button class="page-pill active" data-pages="1" onclick="setPageMode(1)">1 page</button>
+          <button class="page-pill" data-pages="2" onclick="setPageMode(2)">2 pages</button>
+        </div>
+        <span id="page-count-label" class="page-count-badge"></span>
+      </div>
+
+      <!-- A4 canvas — pages injected dynamically by buildPagesView() -->
+      <div class="preview-stage" id="preview-stage">
+        <div class="preview-loading" id="preview-loading">Loading preview…</div>
+      </div>
+    </section>
+
+  </main>
+</div><!-- /layout -->
+</div><!-- /pane-cv -->
+
+<!-- ═══ COVER LETTER TAB ════════════════════════════ -->
+<div class="tab-pane" id="pane-letter">
+  <div class="letter-container">
+    <div class="letter-subtabs">
+      <button class="letter-subtab active" data-ltab="quick">Quick Draft</button>
+      <button class="letter-subtab" data-ltab="interactive">Interactive</button>
+    </div>
+
+    <!-- Quick Draft -->
+    <div class="letter-pane active" id="ltab-quick">
+      <div class="letter-grid">
+        <div class="letter-meta-card">
+          <div class="form-group"><label>Target Company</label>
+            <input type="text" id="letter-company" placeholder="e.g. Google"></div>
+          <div class="form-group"><label>Position / Role</label>
+            <input type="text" id="letter-position" placeholder="e.g. Senior Data Scientist"></div>
+          <div class="form-group"><label>Recipient</label>
+            <input type="text" id="letter-recipient" placeholder="Hiring Manager"></div>
+          <div class="form-group"><label>Language</label>
+            <select id="letter-lang">
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+            </select>
+          </div>
+          <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">
+            <button class="btn btn-success" onclick="generateQuickDraft()">↺ Auto-generate from CV</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('letter-text').value=''">Clear</button>
+          </div>
+        </div>
+        <div class="letter-editor">
+          <textarea id="letter-text" placeholder="Click 'Auto-generate from CV' to create a first draft, then edit freely."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive -->
+    <div class="letter-pane" id="ltab-interactive">
+
+      <!-- Inner sub-tabs -->
+      <div class="int-subtabs">
+        <button class="int-subtab active" data-itab="past-jobs">Past Jobs</button>
+        <button class="int-subtab" data-itab="applying-job">Applying Job</button>
+      </div>
+
+      <!-- Past Jobs panel -->
+      <div class="int-pane active" id="itab-past-jobs">
+        <p class="text-muted" style="margin-bottom:1.1rem">
+          Answer the questions for each of your past roles. Your answers will be woven into the cover letter to show concrete impact.
+        </p>
+        <div id="past-jobs-qa">
+          <!-- dynamically filled from cv.experience -->
+        </div>
+      </div>
+
+      <!-- Applying Job panel -->
+      <div class="int-pane" id="itab-applying-job">
+        <div class="qa-list">
+          <div class="qa-item">
+            <div class="qa-label">1 · Target company and role</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+              <input type="text" id="qa-company" placeholder="Company name">
+              <input type="text" id="qa-position" placeholder="Role / Position">
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-label">2 · Why are you specifically interested in this company?</div>
+            <textarea id="qa-why" rows="3" placeholder="Products, mission, market position, growth…"></textarea>
+          </div>
+          <div class="qa-item">
+            <div class="qa-label">3 · What is your standout achievement for this position?</div>
+            <textarea id="qa-achievement" rows="3" placeholder="A specific project, metric, or result that proves your impact…"></textarea>
+          </div>
+          <div class="qa-item">
+            <div class="qa-label">4 · What unique value do you bring that others might not?</div>
+            <textarea id="qa-unique" rows="3" placeholder="Your combination of skills, domain expertise, or perspective…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-success" style="margin-top:1.2rem" onclick="generateInteractiveLetter()">
+        Generate Letter from All Answers
+      </button>
+
+      <div class="qa-result" id="qa-result" style="display:none;margin-top:1.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <strong>Generated letter — edit freely before downloading</strong>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qa-result').style.display='none'">Hide</button>
+        </div>
+        <textarea id="interactive-letter-text"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PORTFOLIO TAB ════════════════════════════════ -->
+<div class="tab-pane" id="pane-portfolio">
+  <div class="portfolio-container">
+    <div class="portfolio-header">
+      <div>
+        <a href="https://www.forwardforecasting.eu" target="_blank" rel="noopener"
+           style="display:inline-block;margin-bottom:1.6rem;font-size:1rem;color:#2563eb;font-weight:500;text-decoration:none">
+          🌐 Visit my Landing Page: www.forwardforecasting.eu
+        </a>
+        <h2 style="text-align:left">Public GitHub Repositories</h2>
+      </div>
+      <div class="portfolio-username">
+        <input type="text" id="github-username-field" placeholder="GitHub username"
+               onkeydown="if(event.key==='Enter')loadPortfolio()">
+        <button class="btn btn-success btn-sm" onclick="loadPortfolio()">Load Repos</button>
+      </div>
+    </div>
+    <div id="repo-grid" class="repo-grid-lp">
+      <div class="portfolio-empty" style="grid-column:1/-1">Enter your GitHub username above and click "Load Repos" to see your public repositories.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ────────────────── MODALS ──────────────────────── -->
+
+<!-- Experience Modal -->
+<div class="modal-overlay" id="exp-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="exp-modal-title">Add Experience</span>
+      <button class="modal-close" onclick="closeModal('exp-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="exp-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Company</label>
+          <input type="text" id="exp-company" placeholder="Company name">
+        </div>
+        <div class="form-group">
+          <label>Position / Title</label>
+          <input type="text" id="exp-position" placeholder="Your role">
+        </div>
+        <div class="form-group">
+          <label>Start (Month/Year)</label>
+          <input type="month" id="exp-start">
+        </div>
+        <div class="form-group">
+          <label>End (Month/Year)</label>
+          <input type="month" id="exp-end">
+        </div>
+        <div class="form-group span-2 checkbox-row">
+          <input type="checkbox" id="exp-current">
+          <label for="exp-current">Currently working here</label>
+        </div>
+        <div class="form-group">
+          <label>Location</label>
+          <input type="text" id="exp-location" placeholder="City, Country">
+        </div>
+        <div class="form-group span-2">
+          <label>Description & Achievements</label>
+          <textarea id="exp-description" rows="5" placeholder="Describe your role, responsibilities and achievements…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('exp-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveExp()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Education Modal -->
+<div class="modal-overlay" id="edu-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="edu-modal-title">Add Education</span>
+      <button class="modal-close" onclick="closeModal('edu-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edu-id">
+      <div class="form-grid">
+        <div class="form-group span-2">
+          <label>Institution</label>
+          <input type="text" id="edu-institution" placeholder="University / School name">
+        </div>
+        <div class="form-group">
+          <label>Degree</label>
+          <input type="text" id="edu-degree" placeholder="e.g. PhD, MSc, BSc">
+        </div>
+        <div class="form-group">
+          <label>Field of Study</label>
+          <input type="text" id="edu-field" placeholder="e.g. Computer Science">
+        </div>
+        <div class="form-group">
+          <label>Start Year</label>
+          <input type="text" id="edu-start" placeholder="2010">
+        </div>
+        <div class="form-group">
+          <label>End Year</label>
+          <input type="text" id="edu-end" placeholder="2015">
+        </div>
+        <div class="form-group">
+          <label>Grade / GPA</label>
+          <input type="text" id="edu-grade" placeholder="e.g. Magna Cum Laude">
+        </div>
+        <div class="form-group span-2">
+          <label>Description (optional)</label>
+          <textarea id="edu-description" rows="3" placeholder="Thesis, exchange programs, notable projects…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('edu-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveEdu()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Certification Modal -->
+<div class="modal-overlay" id="cert-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="cert-modal-title">Add Certification</span>
+      <button class="modal-close" onclick="closeModal('cert-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cert-id">
+      <div class="form-grid">
+        <div class="form-group span-2">
+          <label>Certification Name</label>
+          <input type="text" id="cert-name" placeholder="e.g. AWS Solutions Architect">
+        </div>
+        <div class="form-group">
+          <label>Issuing Organization</label>
+          <input type="text" id="cert-issuer" placeholder="e.g. Amazon Web Services">
+        </div>
+        <div class="form-group">
+          <label>Issue Date</label>
+          <input type="month" id="cert-date">
+        </div>
+        <div class="form-group">
+          <label>Expiry Date (optional)</label>
+          <input type="month" id="cert-expiry">
+        </div>
+        <div class="form-group">
+          <label>Credential URL (optional)</label>
+          <input type="url" id="cert-url" placeholder="https://…">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('cert-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveCert()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Skills Modal -->
+<div class="modal-overlay" id="skill-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="skill-modal-title">Add Skill Category</span>
+      <button class="modal-close" onclick="closeModal('skill-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="skill-id">
+      <div class="form-grid cols-1">
+        <div class="form-group">
+          <label>Category Name</label>
+          <input type="text" id="skill-category" placeholder="e.g. Programming Languages">
+        </div>
+        <div class="form-group">
+          <label>Skills (press Enter or comma to add)</label>
+          <div class="tags-input-row">
+            <input type="text" id="skill-tag-input" placeholder="Type a skill and press Enter">
+          </div>
+          <div class="tags-container" id="skill-tags"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('skill-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveSkill()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Language Modal -->
+<div class="modal-overlay" id="lang-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="lang-modal-title">Add Language</span>
+      <button class="modal-close" onclick="closeModal('lang-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="lang-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Language</label>
+          <input type="text" id="lang-language" placeholder="e.g. Spanish">
+        </div>
+        <div class="form-group">
+          <label>Proficiency Level</label>
+          <select id="lang-level">
+            <option value="Native">Native</option>
+            <option value="Professional">Professional</option>
+            <option value="Advanced">Advanced (C1/C2)</option>
+            <option value="Intermediate">Intermediate (B1/B2)</option>
+            <option value="Basic">Basic (A1/A2)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('lang-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveLang()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Projects Modal -->
+<div class="modal-overlay" id="proj-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="proj-modal-title">Add Project</span>
+      <button class="modal-close" onclick="closeModal('proj-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="proj-id">
+      <div class="form-grid">
+        <div class="form-group span-2">
+          <label>Project Name</label>
+          <input type="text" id="proj-name" placeholder="e.g. Wind Farm Analytics Platform">
+        </div>
+        <div class="form-group span-2">
+          <label>Description</label>
+          <textarea id="proj-description" rows="4" placeholder="What did you build? What problem did it solve?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>URL (optional)</label>
+          <input type="url" id="proj-url" placeholder="https://github.com/…">
+        </div>
+        <div class="form-group">
+          <label>Technologies (press Enter to add)</label>
+          <div class="tags-input-row">
+            <input type="text" id="proj-tag-input" placeholder="Python, FastAPI…">
+          </div>
+          <div class="tags-container" id="proj-tags"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('proj-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="saveProj()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ──────────────── JAVASCRIPT ─────────────────────── -->
+<script>
+let cv = {};
+
+// ─── Boot ───────────────────────────────────────────
+async function boot() {
+  cv = await fetch('/api/cv').then(r => r.json());
+  renderPersonal();
+  renderList('experience');
+  renderList('education');
+  renderList('certifications');
+  renderList('skills');
+  renderList('languages');
+  renderList('projects');
+  updatePhotoPreview(cv.personal?.photo || null);
+}
+
+// ─── Navigation ─────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const sec = el.dataset.section;
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(`section-${sec}`).classList.add('active');
+  });
+});
+
+// ─── Auto-save helper ────────────────────────────────
+let saveTimer;
+async function persist() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    await fetch('/api/cv', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(cv) });
+    flashSave();
+  }, 600);
+}
+
+function flashSave() {
+  const el = document.getElementById('save-indicator');
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 2000);
+}
+
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (isError ? ' error' : '');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ─── UUID helper ─────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2,10);
+
+// ─── Modal helpers ───────────────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ─── PERSONAL ────────────────────────────────────────
+function renderPersonal() {
+  const p = cv.personal || {};
+  document.getElementById('p-name').value     = p.name     || '';
+  document.getElementById('p-title').value    = p.title    || '';
+  document.getElementById('p-email').value    = p.email    || '';
+  document.getElementById('p-phone').value    = p.phone    || '';
+  document.getElementById('p-location').value = p.location || '';
+  document.getElementById('p-linkedin').value = p.linkedin || '';
+  document.getElementById('p-github').value   = p.github   || '';
+  document.getElementById('p-website').value  = p.website  || '';
+  document.getElementById('p-summary').value  = p.summary  || '';
+  updatePhotoPreview(p.photo);
+}
+
+function savePersonal() {
+  cv.personal = {
+    name:     document.getElementById('p-name').value.trim(),
+    title:    document.getElementById('p-title').value.trim(),
+    email:    document.getElementById('p-email').value.trim(),
+    phone:    document.getElementById('p-phone').value.trim(),
+    location: document.getElementById('p-location').value.trim(),
+    linkedin: document.getElementById('p-linkedin').value.trim(),
+    github:   document.getElementById('p-github').value.trim(),
+    website:  document.getElementById('p-website').value.trim(),
+    summary:  document.getElementById('p-summary').value.trim(),
+    photo:    (cv.personal || {}).photo || null,
+  };
+  persist();
+  toast('Personal info saved');
+}
+
+// ─── PHOTO UPLOAD ─────────────────────────────────────
+document.getElementById('photo-file').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const form = new FormData();
+  form.append('file', file);
+  const res = await fetch('/api/upload-photo', { method: 'POST', body: form });
+  if (!res.ok) { toast('Upload failed', true); return; }
+  const { path } = await res.json();
+  if (!cv.personal) cv.personal = {};
+  cv.personal.photo = path;
+  updatePhotoPreview(path);
+  persist();
+  toast('Photo uploaded');
+});
+
+function updatePhotoPreview(path) {
+  const wrap = document.getElementById('photo-preview-wrap');
+  if (path) {
+    wrap.innerHTML = `<img class="photo-preview" src="${path}?t=${Date.now()}" alt="Photo">`;
+    document.getElementById('remove-photo-btn').style.display = 'inline-flex';
+  } else {
+    wrap.innerHTML = '<div class="photo-placeholder" id="photo-placeholder">👤</div>';
+    document.getElementById('remove-photo-btn').style.display = 'none';
+  }
+}
+
+function removePhoto() {
+  if (!cv.personal) cv.personal = {};
+  cv.personal.photo = null;
+  updatePhotoPreview(null);
+  persist();
+}
+
+// ─── GENERIC LIST RENDERER ────────────────────────────
+function renderList(section) {
+  const container = document.getElementById(`${section}-list`);
+  const items = cv[section] || [];
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>No entries yet. Click "+ Add" to get started.</p></div>`;
+    return;
+  }
+  container.innerHTML = items.map(item => renderCard(section, item)).join('');
+}
+
+const MODAL_FN = {
+  experience: 'Exp', education: 'Edu', certifications: 'Cert',
+  skills: 'Skill', languages: 'Lang', projects: 'Proj',
+};
+
+function renderCard(section, item) {
+  const fn = MODAL_FN[section] || cap(section);
+  const actions = `
+    <div class="card-actions">
+      <button class="btn btn-ghost btn-sm" onclick='open${fn}Modal(${JSON.stringify(item.id)})'>Edit</button>
+      <button class="btn btn-danger btn-sm" onclick='deleteItem("${section}","${item.id}")'>Delete</button>
+    </div>`;
+  switch (section) {
+    case 'experience': return `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${esc(item.position)} — ${esc(item.company)}</div>
+            <div class="card-subtitle">${fmtDate(item.start_date)} – ${item.current ? 'Present' : fmtDate(item.end_date)}${item.location ? ' · ' + esc(item.location) : ''}</div>
+          </div>${actions}
+        </div>
+        <p style="font-size:.88rem;color:#475569;white-space:pre-wrap">${esc(item.description||'')}</p>
+      </div>`;
+    case 'education': return `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${esc(item.degree)} in ${esc(item.field)}</div>
+            <div class="card-subtitle">${esc(item.institution)} · ${esc(item.end_date||'')}${item.grade ? ' · ' + esc(item.grade) : ''}</div>
+          </div>${actions}
+        </div>
+        ${item.description ? `<p style="font-size:.88rem;color:#475569">${esc(item.description)}</p>` : ''}
+      </div>`;
+    case 'certifications': return `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${esc(item.name)}</div>
+            <div class="card-subtitle">${esc(item.issuer||'')}${item.date ? ' · ' + fmtDate(item.date) : ''}${item.expiry ? ' (exp. ' + fmtDate(item.expiry) + ')' : ''}</div>
+          </div>${actions}
+        </div>
+        ${item.url ? `<a href="${esc(item.url)}" target="_blank" style="font-size:.82rem;color:#2563eb">View credential ↗</a>` : ''}
+      </div>`;
+    case 'skills': return `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">${esc(item.category)}</div>${actions}
+        </div>
+        <div class="tags-container">${(item.items||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+      </div>`;
+    case 'languages': return `
+      <div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+        <div>
+          <span class="card-title">${esc(item.language)}</span>
+          <span class="text-muted" style="margin-left:.75rem">${esc(item.level)}</span>
+        </div>${actions}
+      </div>`;
+    case 'projects': return `
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${esc(item.name)}</div>
+            ${item.url ? `<a class="card-subtitle" href="${esc(item.url)}" target="_blank">${esc(item.url)}</a>` : ''}
+          </div>${actions}
+        </div>
+        <p style="font-size:.88rem;color:#475569;margin-bottom:.6rem">${esc(item.description||'')}</p>
+        <div class="tags-container">${(item.technologies||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+      </div>`;
+  }
+}
+
+function deleteItem(section, id) {
+  if (!confirm('Delete this entry?')) return;
+  cv[section] = (cv[section]||[]).filter(i => i.id !== id);
+  renderList(section);
+  persist();
+  toast('Deleted');
+}
+
+// ─── EXPERIENCE MODAL ─────────────────────────────────
+let skillTags = [], projTags = [];
+
+function openExpModal(id=null) {
+  const item = id ? cv.experience.find(i=>i.id===id) : null;
+  document.getElementById('exp-modal-title').textContent = id ? 'Edit Experience' : 'Add Experience';
+  document.getElementById('exp-id').value          = item?.id || '';
+  document.getElementById('exp-company').value     = item?.company || '';
+  document.getElementById('exp-position').value    = item?.position || '';
+  document.getElementById('exp-start').value       = item?.start_date || '';
+  document.getElementById('exp-end').value         = item?.end_date || '';
+  document.getElementById('exp-current').checked   = item?.current || false;
+  document.getElementById('exp-location').value    = item?.location || '';
+  document.getElementById('exp-description').value = item?.description || '';
+  openModal('exp-modal');
+}
+
+function saveExp() {
+  const id = document.getElementById('exp-id').value || uid();
+  const item = {
+    id, company:     document.getElementById('exp-company').value.trim(),
+    position:    document.getElementById('exp-position').value.trim(),
+    start_date:  document.getElementById('exp-start').value,
+    end_date:    document.getElementById('exp-end').value,
+    current:     document.getElementById('exp-current').checked,
+    location:    document.getElementById('exp-location').value.trim(),
+    description: document.getElementById('exp-description').value.trim(),
+  };
+  upsert('experience', item);
+  closeModal('exp-modal');
+  toast('Experience saved');
+}
+
+// ─── EDUCATION MODAL ──────────────────────────────────
+function openEduModal(id=null) {
+  const item = id ? cv.education.find(i=>i.id===id) : null;
+  document.getElementById('edu-modal-title').textContent = id ? 'Edit Education' : 'Add Education';
+  document.getElementById('edu-id').value          = item?.id || '';
+  document.getElementById('edu-institution').value = item?.institution || '';
+  document.getElementById('edu-degree').value      = item?.degree || '';
+  document.getElementById('edu-field').value       = item?.field || '';
+  document.getElementById('edu-start').value       = item?.start_date || '';
+  document.getElementById('edu-end').value         = item?.end_date || '';
+  document.getElementById('edu-grade').value       = item?.grade || '';
+  document.getElementById('edu-description').value = item?.description || '';
+  openModal('edu-modal');
+}
+
+function saveEdu() {
+  const id = document.getElementById('edu-id').value || uid();
+  const item = {
+    id, institution: document.getElementById('edu-institution').value.trim(),
+    degree:      document.getElementById('edu-degree').value.trim(),
+    field:       document.getElementById('edu-field').value.trim(),
+    start_date:  document.getElementById('edu-start').value,
+    end_date:    document.getElementById('edu-end').value,
+    grade:       document.getElementById('edu-grade').value.trim(),
+    description: document.getElementById('edu-description').value.trim(),
+  };
+  upsert('education', item);
+  closeModal('edu-modal');
+  toast('Education saved');
+}
+
+// ─── CERTIFICATION MODAL ──────────────────────────────
+function openCertModal(id=null) {
+  const item = id ? cv.certifications.find(i=>i.id===id) : null;
+  document.getElementById('cert-modal-title').textContent = id ? 'Edit Certification' : 'Add Certification';
+  document.getElementById('cert-id').value     = item?.id || '';
+  document.getElementById('cert-name').value   = item?.name || '';
+  document.getElementById('cert-issuer').value = item?.issuer || '';
+  document.getElementById('cert-date').value   = item?.date || '';
+  document.getElementById('cert-expiry').value = item?.expiry || '';
+  document.getElementById('cert-url').value    = item?.url || '';
+  openModal('cert-modal');
+}
+
+function saveCert() {
+  const id = document.getElementById('cert-id').value || uid();
+  const item = {
+    id, name:   document.getElementById('cert-name').value.trim(),
+    issuer: document.getElementById('cert-issuer').value.trim(),
+    date:   document.getElementById('cert-date').value,
+    expiry: document.getElementById('cert-expiry').value,
+    url:    document.getElementById('cert-url').value.trim(),
+  };
+  upsert('certifications', item);
+  closeModal('cert-modal');
+  toast('Certification saved');
+}
+
+// ─── SKILLS MODAL ─────────────────────────────────────
+function openSkillModal(id=null) {
+  const item = id ? cv.skills.find(i=>i.id===id) : null;
+  document.getElementById('skill-modal-title').textContent = id ? 'Edit Skill Category' : 'Add Skill Category';
+  document.getElementById('skill-id').value       = item?.id || '';
+  document.getElementById('skill-category').value = item?.category || '';
+  skillTags = item?.items ? [...item.items] : [];
+  renderSkillTags();
+  openModal('skill-modal');
+}
+
+document.getElementById('skill-tag-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = e.target.value.trim().replace(/,$/, '');
+    if (val && !skillTags.includes(val)) { skillTags.push(val); renderSkillTags(); }
+    e.target.value = '';
+  }
+});
+
+function renderSkillTags() {
+  document.getElementById('skill-tags').innerHTML = skillTags.map((t,i) =>
+    `<span class="tag">${esc(t)} <span class="remove-tag" onclick="skillTags.splice(${i},1);renderSkillTags()">×</span></span>`
+  ).join('');
+}
+
+function saveSkill() {
+  const val = document.getElementById('skill-tag-input').value.trim();
+  if (val && !skillTags.includes(val)) skillTags.push(val);
+  const id = document.getElementById('skill-id').value || uid();
+  const item = { id, category: document.getElementById('skill-category').value.trim(), items: [...skillTags] };
+  upsert('skills', item);
+  closeModal('skill-modal');
+  toast('Skills saved');
+}
+
+// ─── LANGUAGE MODAL ───────────────────────────────────
+function openLangModal(id=null) {
+  const item = id ? cv.languages.find(i=>i.id===id) : null;
+  document.getElementById('lang-modal-title').textContent = id ? 'Edit Language' : 'Add Language';
+  document.getElementById('lang-id').value       = item?.id || '';
+  document.getElementById('lang-language').value = item?.language || '';
+  document.getElementById('lang-level').value    = item?.level || 'Professional';
+  openModal('lang-modal');
+}
+
+function saveLang() {
+  const id = document.getElementById('lang-id').value || uid();
+  const item = { id, language: document.getElementById('lang-language').value.trim(), level: document.getElementById('lang-level').value };
+  upsert('languages', item);
+  closeModal('lang-modal');
+  toast('Language saved');
+}
+
+// ─── PROJECTS MODAL ───────────────────────────────────
+function openProjModal(id=null) {
+  const item = id ? cv.projects.find(i=>i.id===id) : null;
+  document.getElementById('proj-modal-title').textContent = id ? 'Edit Project' : 'Add Project';
+  document.getElementById('proj-id').value          = item?.id || '';
+  document.getElementById('proj-name').value        = item?.name || '';
+  document.getElementById('proj-description').value = item?.description || '';
+  document.getElementById('proj-url').value         = item?.url || '';
+  projTags = item?.technologies ? [...item.technologies] : [];
+  renderProjTags();
+  openModal('proj-modal');
+}
+
+document.getElementById('proj-tag-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    const val = e.target.value.trim().replace(/,$/, '');
+    if (val && !projTags.includes(val)) { projTags.push(val); renderProjTags(); }
+    e.target.value = '';
+  }
+});
+
+function renderProjTags() {
+  document.getElementById('proj-tags').innerHTML = projTags.map((t,i) =>
+    `<span class="tag">${esc(t)} <span class="remove-tag" onclick="projTags.splice(${i},1);renderProjTags()">×</span></span>`
+  ).join('');
+}
+
+function saveProj() {
+  const val = document.getElementById('proj-tag-input').value.trim();
+  if (val && !projTags.includes(val)) projTags.push(val);
+  const id = document.getElementById('proj-id').value || uid();
+  const item = {
+    id, name:         document.getElementById('proj-name').value.trim(),
+    description:  document.getElementById('proj-description').value.trim(),
+    url:          document.getElementById('proj-url').value.trim(),
+    technologies: [...projTags],
+  };
+  upsert('projects', item);
+  closeModal('proj-modal');
+  toast('Project saved');
+}
+
+// ─── UPSERT helper ────────────────────────────────────
+function upsert(section, item) {
+  if (!cv[section]) cv[section] = [];
+  const idx = cv[section].findIndex(i => i.id === item.id);
+  if (idx >= 0) cv[section][idx] = item; else cv[section].push(item);
+  renderList(section);
+  persist();
+}
+
+// ─── FORMAT helpers ───────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '';
+  const [y, m] = d.split('-');
+  if (!m) return y;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(m,10)-1]} ${y}`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+
+// ─── PREVIEW ─────────────────────────────────────────
+const A4_W = 794, A4_H = 1123, PAGE_GAP = 20;  // px at 1× zoom
+let previewTpl  = 'classic';
+let previewZoom = 0.75;
+let pageMode    = 1;   // 1=1 page  2=2 pages (no Auto — default is 1 page)
+
+// ── Page-mode controls ───────────────────────────────
+function setPageMode(n) {
+  pageMode = n;
+  document.querySelectorAll('.page-pill').forEach(b =>
+    b.classList.toggle('active', parseInt(b.dataset.pages) === n)
+  );
+  loadPreview(previewTpl);
+}
+
+// ── Template switch ──────────────────────────────────
+function loadPreview(tpl) {
+  previewTpl = tpl;
+  document.querySelectorAll('.preview-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.tpl === tpl)
+  );
+  buildPagesView();
+}
+
+// ── Core: measure → build N page-windows ─────────────
+async function buildPagesView() {
+  const stage = document.getElementById('preview-stage');
+  stage.innerHTML = '<div class="preview-loading">Loading preview…</div>';
+
+  // 1 – Hidden probe: measure natural content height
+  const ts = Date.now();
+
+  // 1 – Probe: measure natural content height (preview always shows full scale — no zoom)
+  const naturalH = await new Promise(resolve => {
+    const probe = document.createElement('iframe');
+    probe.style.cssText =
+      'position:fixed;top:-9999px;left:-9999px;' +
+      `width:${A4_W}px;height:5000px;visibility:hidden;border:none;`;
+    document.body.appendChild(probe);
+    probe.onload = () => {
+      let h = A4_H;
+      try { h = probe.contentDocument.documentElement.scrollHeight || A4_H; }
+      catch(e) {}
+      document.body.removeChild(probe);
+      resolve(h);
+    };
+    probe.src = `/preview/${previewTpl}?t=${ts}`;
+  });
+
+  // How many A4 pages at natural scale?
+  // Subtract 80 px trailing buffer so CSS bottom-margins don't create a phantom empty page.
+  const nPages = Math.max(1, Math.ceil((naturalH - 80) / A4_H));
+
+  // Badge — show natural count and a hint when PDF will expand or compress
+  const badge = document.getElementById('page-count-label');
+  let badgeText = `${nPages} page${nPages !== 1 ? 's' : ''} natural`;
+  if (pageMode > 0 && pageMode !== nPages) {
+    badgeText += pageMode > nPages ? ` → PDF expands to ${pageMode}` : ` → PDF compresses to ${pageMode}`;
+  }
+  badge.textContent = badgeText;
+  badge.style.display = 'inline';
+
+  // 2 – Build page windows (always natural scale; page-mode limits windows shown)
+  stage.innerHTML = '';
+  const col = document.createElement('div');
+  col.id = 'pages-col';
+  stage.appendChild(col);
+
+  const windowCount = Math.min(nPages, pageMode);  // always respect page limit
+
+  for (let i = 0; i < windowCount; i++) {
+    if (i > 0) {
+      const gap = document.createElement('div');
+      gap.className = 'page-gap';
+      col.appendChild(gap);
+    }
+
+    const win = document.createElement('div');
+    win.className = 'page-window';
+    win.style.cssText =
+      `width:${Math.round(A4_W * previewZoom)}px;` +
+      `height:${Math.round(A4_H * previewZoom)}px;`;
+    col.appendChild(win);
+
+    const frame = document.createElement('iframe');
+    frame.className = 'page-frame';
+    frame.style.cssText =
+      `width:${A4_W}px;height:${naturalH}px;border:none;display:block;` +
+      `transform:scale(${previewZoom});transform-origin:top left;` +
+      `margin-top:${-i * A4_H}px;`;
+    frame.src = `/preview/${previewTpl}?t=${ts}`;
+    win.appendChild(frame);
+  }
+}
+
+// ── Viewing zoom (+ / −) — update all page windows ───
+function changeZoom(delta) {
+  previewZoom = Math.min(2, Math.max(0.3, +(previewZoom + delta).toFixed(2)));
+  applyZoom();
+}
+
+function applyZoom() {
+  document.querySelectorAll('.page-window').forEach(w => {
+    w.style.width  = Math.round(A4_W * previewZoom) + 'px';
+    w.style.height = Math.round(A4_H * previewZoom) + 'px';
+  });
+  document.querySelectorAll('.page-frame').forEach(f => {
+    f.style.transform = `scale(${previewZoom})`;
+  });
+  document.getElementById('zoom-label').textContent =
+    Math.round(previewZoom * 100) + '%';
+}
+
+function openPreviewTab() {
+  window.open(`/preview/${previewTpl}`, '_blank');
+}
+
+// ── Download PDF (respects page mode) ────────────────
+async function generateFromPreview() {
+  const btn = document.getElementById('download-pdf-btn');
+  btn.textContent = '⏳ Generating…'; btn.disabled = true;
+  try {
+    const res = await fetch(`/api/generate/${previewTpl}?pages=${pageMode}`);
+    if (!res.ok) throw new Error('PDF generation failed');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cv_${previewTpl}_${pageMode}p.pdf`;
+    a.click();
+    toast(`PDF (${pageMode}-page) downloaded!`);
+  } catch(e) { toast(e.message, true); }
+  finally { btn.textContent = '⬇ Download PDF'; btn.disabled = false; }
+}
+
+// Reload when navigating to preview section
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    if (el.dataset.section === 'preview') setTimeout(() => loadPreview(previewTpl), 50);
+  });
+});
+
+// ─── App tab switching ───────────────────────────────
+document.querySelectorAll('.section-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.apptab;
+    document.querySelectorAll('.section-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById(`pane-${tab}`).classList.add('active');
+    document.getElementById('ctrl-cv').style.display        = tab === 'cv'        ? 'flex' : 'none';
+    document.getElementById('ctrl-letter').style.display    = tab === 'letter'    ? 'flex' : 'none';
+    document.getElementById('ctrl-portfolio').style.display = tab === 'portfolio' ? 'flex' : 'none';
+    if (tab === 'letter')    initLetter();
+    if (tab === 'portfolio') initPortfolio();
+    if (tab === 'cv')        setTimeout(() => { if (document.querySelector('.nav-item[data-section="preview"]')?.classList.contains('active')) loadPreview(previewTpl); }, 50);
+  });
+});
+
+// ─── Letter sub-tab switching ────────────────────────
+document.querySelectorAll('.letter-subtab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.letter-subtab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.letter-pane').forEach(p => p.classList.remove('active'));
+    const pane = document.getElementById(`ltab-${btn.dataset.ltab}`);
+    if (pane) pane.classList.add('active');
+    if (btn.dataset.ltab === 'interactive') renderPastJobsQA();
+  });
+});
+
+// ─── Interactive: inner sub-tabs (Past Jobs / Applying Job) ──
+document.querySelectorAll('.int-subtab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.int-subtab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.int-pane').forEach(p => p.classList.remove('active'));
+    const pane = document.getElementById(`itab-${btn.dataset.itab}`);
+    if (pane) pane.classList.add('active');
+    if (btn.dataset.itab === 'past-jobs') renderPastJobsQA();
+  });
+});
+
+// ─── Cover Letter ────────────────────────────────────
+function initLetter() {
+  const ta = document.getElementById('letter-text');
+  if (ta && !ta.value.trim()) generateQuickDraft();
+  renderPastJobsQA();
+}
+
+function renderPastJobsQA() {
+  const container = document.getElementById('past-jobs-qa');
+  if (!container) return;
+  const exps = cv.experience || [];
+  if (!exps.length) {
+    container.innerHTML = '<p class="text-muted">No work experience found in your CV. Add experience entries first.</p>';
+    return;
+  }
+  container.innerHTML = exps.slice(0, 6).map((e, i) => `
+    <div class="qa-job-block ${i > 0 ? 'qa-job-sep' : ''}">
+      <div class="qa-job-header">
+        <span class="qa-job-title-text">${esc(e.position)}</span>
+        <span class="qa-job-company">${esc(e.company)}</span>
+        <span class="qa-job-dates">${e.start_date || ''} – ${e.current ? 'Present' : (e.end_date || '')}</span>
+      </div>
+      <div class="qa-list" style="margin-top:.75rem">
+        <div class="qa-item">
+          <div class="qa-label">Most impactful project or initiative</div>
+          <textarea id="job-${i}-impact" rows="2" placeholder="Describe a key project, its goal, and the outcome…"></textarea>
+        </div>
+        <div class="qa-item">
+          <div class="qa-label">Specific result or metric that best demonstrates your value</div>
+          <textarea id="job-${i}-metric" rows="2" placeholder="e.g. Reduced processing time by 40%, deployed 3 ML models in production…"></textarea>
+        </div>
+        <div class="qa-item">
+          <div class="qa-label">Key skill or capability you developed or applied</div>
+          <textarea id="job-${i}-skill" rows="2" placeholder="Technical skill, leadership capability, domain expertise…"></textarea>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function generateQuickDraft() {
+  const p     = cv.personal || {};
+  const exps  = cv.experience || [];
+  const allSk = (cv.skills || []).flatMap(s => s['items'] || []);
+  const topSk = allSk.slice(0, 5).join(', ');
+
+  const company   = document.getElementById('letter-company').value.trim()   || '[Company]';
+  const position  = document.getElementById('letter-position').value.trim()  || '[Position]';
+  const recipient = document.getElementById('letter-recipient').value.trim() || 'Hiring Manager';
+  const lang      = document.getElementById('letter-lang').value;
+  const today     = new Date().toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-GB',
+                      { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const firstYear  = exps.length ? parseInt((exps[exps.length-1].start_date||'2010').split('-')[0]) : 2010;
+  const yearsExp   = new Date().getFullYear() - firstYear;
+  const compList   = exps.slice(0, 3).map(e => e.company).filter(Boolean).join(', ');
+  const latestExp  = exps[0] || {};
+  const desc1      = (latestExp.description || '').split('.')[0];
+
+  let text;
+  if (lang === 'es') {
+    text =
+`Estimado/a ${recipient},
+
+Me dirijo a usted para expresar mi interés en el puesto de ${position} en ${company}. Con más de ${yearsExp} años de experiencia en ${p.title || 'análisis de datos e ingeniería'}, estoy seguro de poder aportar un valor real y medible a su equipo.
+
+A lo largo de mi carrera en organizaciones como ${compList}, he desarrollado una sólida experiencia en ${topSk}. En mi rol más reciente como ${latestExp.position || p.title || ''} en ${latestExp.company || ''}, ${desc1.charAt(0).toLowerCase() + desc1.slice(1)}.
+
+Lo que más me atrae de ${company} es la oportunidad de aplicar mis capacidades técnicas y analíticas para resolver retos reales de negocio. Me caracterizo por traducir análisis complejos en decisiones accionables, aportando visión tanto técnica como estratégica.
+
+Estaré encantado de ampliar esta información en una entrevista. Puede contactarme en ${p.email || ''} o en el ${p.phone || ''}.
+
+Muchas gracias por considerar mi candidatura.
+
+Atentamente,
+
+${p.name || ''}
+${p.title || ''}`;
+  } else {
+    text =
+`Dear ${recipient},
+
+I am writing to express my strong interest in the ${position} position at ${company}. With over ${yearsExp} years of experience in ${p.title || 'data science and analytics'}, I am confident in my ability to deliver meaningful and measurable impact to your team.
+
+Throughout my career at organisations including ${compList}, I have built deep expertise in ${topSk}. In my most recent role as ${latestExp.position || p.title || ''} at ${latestExp.company || ''}, ${desc1.charAt(0).toLowerCase() + desc1.slice(1)}.
+
+What particularly draws me to ${company} is the opportunity to apply rigorous analytical thinking directly to real business challenges. I excel at bridging the gap between complex data capabilities and practical, actionable outcomes — communicating insight clearly to both technical and non-technical stakeholders.
+
+I would welcome the opportunity to discuss how my background and skills align with your needs. I am available at your convenience and can be reached at ${p.email || ''} or ${p.phone || ''}.
+
+Thank you for considering my application.
+
+Yours sincerely,
+
+${p.name || ''}
+${p.title || ''}`;
+  }
+  document.getElementById('letter-text').value = text;
+}
+
+function generateInteractiveLetter() {
+  const p        = cv.personal || {};
+  const exps     = cv.experience || [];
+
+  // ── Applying-job answers ──────────────────────────
+  const company  = (document.getElementById('qa-company')?.value   || '').trim() || '[Company]';
+  const position = (document.getElementById('qa-position')?.value  || '').trim() || '[Position]';
+  const why      = (document.getElementById('qa-why')?.value       || '').trim();
+  const achieve  = (document.getElementById('qa-achievement')?.value || '').trim();
+  const unique   = (document.getElementById('qa-unique')?.value    || '').trim();
+
+  // ── Past-jobs answers → one paragraph per role ───
+  const pastParas = exps.slice(0, 6).map((e, i) => {
+    const impact = (document.getElementById(`job-${i}-impact`)?.value || '').trim();
+    const metric = (document.getElementById(`job-${i}-metric`)?.value || '').trim();
+    const skill  = (document.getElementById(`job-${i}-skill`)?.value  || '').trim();
+    if (!impact && !metric && !skill) return null;
+    const parts = [];
+    if (impact)  parts.push(`At ${e.company}, ${impact.charAt(0).toLowerCase() + impact.slice(1)}.`);
+    if (metric)  parts.push(metric.endsWith('.') ? metric : metric + '.');
+    if (skill)   parts.push(`This experience deepened my expertise in ${skill}.`);
+    return parts.join(' ');
+  }).filter(Boolean);
+
+  const pastSection = pastParas.length ? pastParas.join('\n\n') : '';
+
+  const paragraphs = [
+    `I am writing to apply for the ${position} position at ${company}. ${why}`.trim(),
+    pastSection,
+    achieve ? `A particularly strong example of my impact: ${achieve}` : '',
+    unique  ? unique : '',
+    `I look forward to discussing how I can contribute to ${company}.`,
+  ].filter(Boolean);
+
+  const text = `Dear Hiring Manager,\n\n${paragraphs.join('\n\n')}\n\nYours sincerely,\n\n${p.name || ''}\n${p.title || ''}`;
+
+  const resultEl = document.getElementById('qa-result');
+  document.getElementById('interactive-letter-text').value = text;
+  resultEl.style.display = 'block';
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function downloadLetterPDF() {
+  const isInteractive = document.querySelector('.letter-subtab.active')?.dataset.ltab === 'interactive';
+  const text = isInteractive
+    ? document.getElementById('interactive-letter-text').value
+    : document.getElementById('letter-text').value;
+
+  if (!text.trim()) { toast('Generate a letter first', true); return; }
+
+  const btn = document.querySelector('#ctrl-letter button');
+  btn.textContent = '⏳ Generating…'; btn.disabled = true;
+
+  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  try {
+    const res = await fetch('/api/generate-letter-pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        company:   document.getElementById('letter-company')?.value  || '',
+        position:  document.getElementById('letter-position')?.value || '',
+        recipient: document.getElementById('letter-recipient')?.value || 'Hiring Manager',
+        body_text: text,
+        date_str:  today,
+      }),
+    });
+    if (!res.ok) throw new Error('PDF generation failed');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'cover_letter.pdf';
+    a.click();
+    toast('Letter PDF downloaded!');
+  } catch(e) { toast(e.message, true); }
+  finally { btn.textContent = '⬇ Download Letter PDF'; btn.disabled = false; }
+}
+
+// ─── Portfolio ───────────────────────────────────────
+function initPortfolio() {
+  // Pre-fill username from CV github field
+  const gh    = (cv.personal || {}).github || '';
+  const field = document.getElementById('github-username-field');
+  if (field && !field.value && gh) {
+    const m = gh.match(/github\.com\/([^/?#]+)/);
+    field.value = m ? m[1] : gh;
+  }
+}
+
+const LANG_COLORS = {
+  Python:'#3572A5', JavaScript:'#f1e05a', TypeScript:'#2b7489', Java:'#b07219',
+  'C++'  :'#f34b7d', C:'#555', Go:'#00ADD8', Rust:'#dea584', Ruby:'#701516',
+  Swift  :'#ffac45', Kotlin:'#A97BFF', PHP:'#4F5D95', 'C#':'#178600',
+  HTML   :'#e34c26', CSS:'#563d7c', Shell:'#89e051', R:'#198CE7',
+  Jupyter:'#DA5B0B', Dockerfile:'#384d54', Vue:'#41b883', Dart:'#00B4AB',
+};
+
+let _portfolioUsername = '';
+
+async function loadPortfolio() {
+  const username = (document.getElementById('github-username-field')?.value || '').trim();
+  if (!username) { toast('Enter a GitHub username', true); return; }
+
+  _portfolioUsername = username;
+  const f = document.getElementById('github-username-field');
+  if (f) f.value = username;
+
+  const grid = document.getElementById('repo-grid');
+  grid.innerHTML = '<div class="portfolio-loading" style="grid-column:1/-1">Loading repositories…</div>';
+
+  try {
+    const repos = await fetch(`/api/github-repos?username=${encodeURIComponent(username)}`)
+      .then(r => { if (!r.ok) throw new Error(`GitHub API error ${r.status}`); return r.json(); });
+
+    if (!repos.length) {
+      grid.innerHTML = '<div class="portfolio-empty" style="grid-column:1/-1">No public repositories found.</div>';
+      return;
+    }
+
+    // Render cards immediately with short description + loading state for summary
+    grid.innerHTML = repos.map(r => repoCard(r, username)).join('');
+
+    // Fetch rich 5-sentence summaries in the background
+    loadSummaries(repos, username);
+  } catch(e) {
+    grid.innerHTML = `<div class="portfolio-empty" style="grid-column:1/-1">⚠ ${e.message}</div>`;
+  }
+}
+
+async function loadSummaries(repos, username) {
+  const payload = repos.map(r => ({ ...r, username }));
+  try {
+    const summaries = await fetch('/api/repo-summaries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then(r => r.json());
+
+    for (const [name, summary] of Object.entries(summaries)) {
+      const id   = `desc-${name.replace(/[^a-z0-9]/gi, '-')}`;
+      const el   = document.getElementById(id);
+      if (el && summary) {
+        el.textContent = summary;
+        el.classList.remove('repo-desc-loading');
+      }
+    }
+  } catch(e) { /* silently ignore — short descriptions remain */ }
+}
+
+function repoCard(r, username) {
+  const color    = LANG_COLORS[r.language] || '#8b949e';
+  const descId   = `desc-${r.name.replace(/[^a-z0-9]/gi, '-')}`;
+  const langDot  = r.language
+    ? `<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.82rem;font-weight:600;color:${color}">` +
+      `<span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block"></span>` +
+      `${esc(r.language)}</span>`
+    : '';
+  const techTags = r.topics.slice(0, 6).map(t => `<span class="repo-tech-tag">${esc(t)}</span>`).join('');
+  const statsArr = [r.stars ? `⭐ ${r.stars}` : '', r.forks ? `🍴 ${r.forks}` : ''].filter(Boolean);
+  const updated  = r.updated ? `Updated ${r.updated}` : '';
+  const liveBtn  = r.homepage
+    ? `<a href="${esc(r.homepage)}" target="_blank" class="repo-live-btn">🌐 Live</a>` : '';
+  // Initial short desc shown immediately; will be replaced by 5-sentence summary
+  const shortDesc = r.description || '';
+
+  return `
+  <div class="repo-card-lp" style="border-top:3px solid ${color}">
+    <div class="repo-card-lp-header">
+      <div>
+        <a class="repo-card-lp-name" href="${esc(r.url)}" target="_blank">${esc(r.name)}</a>
+        <div style="margin-top:.3rem">${langDot}</div>
+      </div>
+      ${liveBtn}
+    </div>
+    <p class="repo-card-lp-desc repo-desc-loading" id="${descId}">
+      ${shortDesc || '<em style="color:#94a3b8">Loading description…</em>'}
+    </p>
+    ${techTags ? `<div class="repo-card-lp-tags">${techTags}</div>` : ''}
+    <div class="repo-card-lp-footer">
+      <span class="repo-card-lp-stats">${statsArr.join(' · ')}</span>
+      <span class="repo-card-lp-date">${updated}</span>
+      <a class="repo-card-lp-link" href="${esc(r.url)}" target="_blank">View on GitHub →</a>
+    </div>
+  </div>`;
+}
+
+// ─── Boot ─────────────────────────────────────────────
+boot();
+</script>
+</body>
+</html>

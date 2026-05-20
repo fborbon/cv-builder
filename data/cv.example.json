@@ -1,0 +1,134 @@
+{
+  "personal": {
+    "name": "Alex Morgan",
+    "title": "Senior Data Scientist",
+    "email": "alex.morgan@example.com",
+    "phone": "+1 555 123 4567",
+    "location": "San Francisco, CA",
+    "linkedin": "https://linkedin.com/in/alexmorgan",
+    "github": "https://github.com/alexmorgan",
+    "website": "https://alexmorgan.dev",
+    "summary": "Data scientist with 8+ years of experience building production ML systems and analytics platforms across fintech, e-commerce, and healthcare. Passionate about turning messy data into clear, actionable decisions.",
+    "photo": null
+  },
+  "experience": [
+    {
+      "id": "e1",
+      "company": "Stripe",
+      "position": "Senior Data Scientist",
+      "start_date": "2021-03",
+      "end_date": null,
+      "current": true,
+      "location": "San Francisco, CA",
+      "description": "Led fraud detection model overhaul, reducing false positives by 34% while catching 12% more fraud. Built real-time feature pipeline processing 50k events/sec. Mentored a team of 4 junior data scientists and drove adoption of standardised ML evaluation practices."
+    },
+    {
+      "id": "e2",
+      "company": "Shopify",
+      "position": "Data Scientist",
+      "start_date": "2018-06",
+      "end_date": "2021-02",
+      "current": false,
+      "location": "Ottawa, Canada",
+      "description": "Developed merchant churn prediction model deployed to 1M+ stores. Built A/B testing framework used across 6 product teams. Delivered weekly executive dashboards on platform health metrics and revenue forecasts."
+    },
+    {
+      "id": "e3",
+      "company": "IBM Research",
+      "position": "Research Analyst",
+      "start_date": "2016-08",
+      "end_date": "2018-05",
+      "current": false,
+      "location": "New York, NY",
+      "description": "Conducted NLP research on automated document classification. Published 2 peer-reviewed conference papers. Co-authored internal toolkit adopted by 3 business units within the first year."
+    }
+  ],
+  "education": [
+    {
+      "id": "edu1",
+      "institution": "Carnegie Mellon University",
+      "degree": "MSc",
+      "field": "Machine Learning",
+      "start_date": "2014",
+      "end_date": "2016",
+      "grade": "GPA 3.9/4.0",
+      "description": "Thesis: Deep reinforcement learning for supply chain optimisation."
+    },
+    {
+      "id": "edu2",
+      "institution": "University of Michigan",
+      "degree": "BSc",
+      "field": "Statistics & Computer Science",
+      "start_date": "2010",
+      "end_date": "2014",
+      "grade": "Summa Cum Laude",
+      "description": ""
+    }
+  ],
+  "certifications": [
+    {
+      "id": "c1",
+      "name": "AWS Certified Machine Learning Specialty",
+      "issuer": "Amazon Web Services",
+      "date": "2023-04",
+      "credential_url": "https://aws.amazon.com/certification/"
+    },
+    {
+      "id": "c2",
+      "name": "TensorFlow Developer Certificate",
+      "issuer": "Google",
+      "date": "2022-09",
+      "credential_url": "https://www.tensorflow.org/certificate"
+    },
+    {
+      "id": "c3",
+      "name": "Professional Data Engineer",
+      "issuer": "Google Cloud",
+      "date": "2022-01",
+      "credential_url": "https://cloud.google.com/certification/data-engineer"
+    }
+  ],
+  "skills": [
+    {
+      "id": "s1",
+      "category": "Machine Learning",
+      "items": ["PyTorch", "TensorFlow", "scikit-learn", "XGBoost", "LightGBM"]
+    },
+    {
+      "id": "s2",
+      "category": "Data Engineering",
+      "items": ["Apache Spark", "Airflow", "dbt", "Kafka", "BigQuery"]
+    },
+    {
+      "id": "s3",
+      "category": "Languages",
+      "items": ["Python", "SQL", "R", "Scala", "TypeScript"]
+    },
+    {
+      "id": "s4",
+      "category": "Cloud & MLOps",
+      "items": ["AWS SageMaker", "GCP Vertex AI", "Docker", "Kubernetes", "MLflow"]
+    }
+  ],
+  "languages": [
+    { "id": "l1", "language": "English", "level": "Native" },
+    { "id": "l2", "language": "Spanish", "level": "Professional" },
+    { "id": "l3", "language": "French",  "level": "Conversational" }
+  ],
+  "projects": [
+    {
+      "id": "p1",
+      "name": "OpenForecast",
+      "description": "Open-source time-series forecasting library supporting 12 algorithms with automatic hyperparameter tuning. 2.3k GitHub stars.",
+      "url": "https://github.com/alexmorgan/openforecast",
+      "technologies": ["Python", "NumPy", "Prophet", "ARIMA", "Optuna"]
+    },
+    {
+      "id": "p2",
+      "name": "DataLens Dashboard",
+      "description": "Self-service BI dashboard builder with natural language query support and auto-generated chart recommendations.",
+      "url": "https://github.com/alexmorgan/datalens",
+      "technologies": ["React", "FastAPI", "PostgreSQL", "LLM"]
+    }
+  ]
+}

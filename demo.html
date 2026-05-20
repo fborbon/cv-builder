@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CV Builder — Demo</title>
+<style>
+/* ── Reset & base ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; }
+
+/* ── Navbar ───────────────────────────────────────── */
+.navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 56px; background: #1e40af; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+.navbar-actions { display: flex; align-items: center; gap: .75rem; }
+.btn { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem 1rem; border-radius: 6px; border: none; font-size: .9rem; font-weight: 600; cursor: pointer; transition: filter .15s; }
+.btn:hover { filter: brightness(1.1); }
+.btn-primary { background: #f59e0b; color: #1e293b; }
+.btn-success { background: #10b981; color: #fff; }
+.btn-danger  { background: #ef4444; color: #fff; }
+.btn-ghost   { background: transparent; color: #64748b; border: 1px solid #cbd5e1; }
+.btn-sm      { padding: .25rem .65rem; font-size: .82rem; }
+
+/* ── Layout ───────────────────────────────────────── */
+.layout { display: flex; margin-top: 56px; min-height: calc(100vh - 56px); }
+
+/* ── Sidebar ──────────────────────────────────────── */
+.sidebar { width: 210px; flex-shrink: 0; background: #fff; border-right: 1px solid #e2e8f0; padding: 1.25rem 0; position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; }
+.sidebar-label { padding: .4rem 1.2rem; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #94a3b8; }
+.nav-item { display: flex; align-items: center; gap: .6rem; padding: .6rem 1.2rem; cursor: pointer; color: #475569; text-decoration: none; font-size: .9rem; border-left: 3px solid transparent; transition: all .15s; }
+.nav-item:hover  { background: #f1f5f9; color: #1e40af; }
+.nav-item.active { background: #eff6ff; color: #1e40af; font-weight: 600; border-left-color: #1e40af; }
+.nav-item .icon  { font-size: 1rem; width: 18px; text-align: center; }
+
+/* ── Content area ─────────────────────────────────── */
+.content { flex: 1; padding: 2rem; max-width: 860px; }
+.section { display: none; }
+.section.active { display: block; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+.section-title { font-size: 1.35rem; font-weight: 700; color: #1e293b; }
+
+/* ── Cards ────────────────────────────────────────── */
+.card { background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; padding: 1.4rem; margin-bottom: 1rem; }
+.card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: .8rem; }
+.card-title   { font-weight: 600; font-size: 1rem; color: #0f172a; }
+.card-subtitle { font-size: .85rem; color: #64748b; margin-top: .15rem; }
+.card-actions { display: flex; gap: .4rem; }
+
+/* ── Forms ────────────────────────────────────────── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: .3rem; }
+.form-group.span-2 { grid-column: span 2; }
+label { font-size: .82rem; font-weight: 600; color: #475569; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="date"], input[type="month"], select, textarea {
+  width: 100%; padding: .5rem .75rem; border: 1px solid #cbd5e1; border-radius: 6px;
+  font-size: .9rem; color: #1e293b; background: #fff; transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.12); }
+textarea { resize: vertical; min-height: 90px; }
+.checkbox-row { display: flex; align-items: center; gap: .5rem; }
+.checkbox-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+.checkbox-row label { font-weight: 500; cursor: pointer; margin: 0; }
+
+/* Photo upload */
+.photo-upload-area { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+.photo-preview { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #e2e8f0; }
+.photo-placeholder { width: 90px; height: 90px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #94a3b8; border: 2px dashed #cbd5e1; }
+
+/* Tags */
+.tags-input-row { display: flex; gap: .5rem; align-items: center; }
+.tags-container { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+.tag { display: inline-flex; align-items: center; gap: .35rem; padding: .22rem .65rem; border-radius: 999px; background: #dbeafe; color: #1d4ed8; font-size: .82rem; font-weight: 500; }
+.tag .remove-tag { cursor: pointer; font-weight: 700; line-height: 1; }
+.tag .remove-tag:hover { color: #ef4444; }
+
+/* ── Modal ────────────────────────────────────────── */
+.modal-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.45); align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 1.4rem; border-bottom: 1px solid #e2e8f0; }
+.modal-title { font-weight: 700; font-size: 1.05rem; }
+.modal-close { background: none; border: none; cursor: pointer; font-size: 1.4rem; color: #94a3b8; line-height: 1; padding: 0 .2rem; }
+.modal-close:hover { color: #ef4444; }
+.modal-body { padding: 1.4rem; }
+.modal-footer { padding: 1rem 1.4rem; border-top: 1px solid #e2e8f0; display: flex; gap: .6rem; justify-content: flex-end; }
+
+/* ── Toast ────────────────────────────────────────── */
+.toast { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 300; padding: .65rem 1.1rem; border-radius: 8px; background: #10b981; color: #fff; font-size: .9rem; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,.2); opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { background: #ef4444; }
+
+/* ── Empty state ──────────────────────────────────── */
+.empty-state { text-align: center; padding: 3rem 1rem; color: #94a3b8; }
+.empty-state .empty-icon { font-size: 2.5rem; margin-bottom: .75rem; }
+
+/* ── Misc ─────────────────────────────────────────── */
+.divider { height: 1px; background: #f1f5f9; margin: 1rem 0; }
+.text-muted { color: #64748b; font-size: .85rem; }
+.save-indicator { font-size: .8rem; color: #10b981; opacity: 0; transition: opacity .3s; }
+.save-indicator.visible { opacity: 1; }
+
+/* ── Preview ──────────────────────────────────────── */
+.preview-tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.2rem; }
+.preview-tab { padding: .35rem .85rem; border-radius: 999px; border: 1.5px solid #cbd5e1; background: #fff; color: #475569; font-size: .85rem; font-weight: 500; cursor: pointer; transition: all .15s; }
+.preview-tab:hover  { border-color: #3b82f6; color: #1e40af; }
+.preview-tab.active { background: #1e40af; border-color: #1e40af; color: #fff; font-weight: 600; }
+.preview-stage { background: #94a3b8; border-radius: 10px; padding: 1.5rem; overflow: auto; display: flex; justify-content: center; min-height: 400px; align-items: center; }
+.preview-placeholder { background: #fff; border-radius: 8px; padding: 3rem 2rem; text-align: center; max-width: 420px; }
+.preview-placeholder h3 { font-size: 1.1rem; color: #1e293b; margin-bottom: .75rem; }
+.preview-placeholder p { font-size: .9rem; color: #64748b; line-height: 1.6; }
+.preview-placeholder code { background: #f1f5f9; padding: .15rem .45rem; border-radius: 4px; font-size: .85rem; }
+
+/* ── Page-mode bar ────────────────────────────────── */
+.page-mode-bar { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: .55rem .9rem; margin-bottom: .9rem; }
+.page-mode-label { font-size: .82rem; font-weight: 600; color: #64748b; }
+.page-pill { padding: .25rem .75rem; border-radius: 999px; border: 1.5px solid #cbd5e1; background: #fff; color: #64748b; font-size: .82rem; font-weight: 500; cursor: pointer; transition: all .15s; }
+.page-pill:hover  { border-color: #3b82f6; color: #1e40af; }
+.page-pill.active { background: #1e40af; border-color: #1e40af; color: #fff; font-weight: 600; }
+.page-count-badge { font-size: .78rem; color: #94a3b8; background: #f1f5f9; padding: .2rem .6rem; border-radius: 999px; }
+
+/* ── Tab panes ────────────────────────────────────── */
+.tab-pane { display: none; padding-top: 56px; min-height: 100vh; }
+.tab-pane.active { display: block; }
+
+/* ── Navbar section tabs ──────────────────────────── */
+.navbar { justify-content: space-between; }
+.navbar-left { display: flex; align-items: center; gap: .15rem; }
+.section-tab { background: none; border: none; cursor: pointer; color: rgba(255,255,255,.65); font-size: .88rem; font-weight: 500; padding: .38rem .8rem; border-radius: 6px; transition: background .15s, color .15s; white-space: nowrap; }
+.section-tab:hover  { background: rgba(255,255,255,.12); color: #fff; }
+.section-tab.active { background: rgba(255,255,255,.18); color: #fff; font-weight: 700; }
+.brand-tab { font-size: 1rem; font-weight: 700; color: #fff; margin-right: .4rem; }
+.brand-tab.active { background: rgba(255,255,255,.14); }
+
+/* ── Cover Letter ─────────────────────────────────── */
+.letter-container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+.letter-subtabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; }
+.letter-subtab { padding: .55rem 1.1rem; border-radius: 6px 6px 0 0; border: none; background: transparent; font-size: .95rem; font-weight: 500; color: #64748b; cursor: pointer; transition: all .15s; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.letter-subtab.active { color: #1e40af; border-bottom-color: #1e40af; font-weight: 700; }
+.letter-subtab:hover:not(.active) { color: #1e40af; background: #eff6ff; }
+.letter-pane { display: none; }
+.letter-pane.active { display: block; }
+.letter-grid { display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; align-items: start; }
+.letter-meta-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.2rem; }
+.letter-meta-card .form-group { margin-bottom: .9rem; }
+.letter-editor { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.2rem; }
+.letter-editor textarea { width: 100%; min-height: 520px; resize: vertical; font-family: Georgia, serif; font-size: 10.5pt; line-height: 1.7; color: #1a1a1a; border: 1px solid #e2e8f0; border-radius: 6px; padding: .75rem; }
+.qa-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+.qa-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.1rem; }
+.qa-label { font-size: .85rem; font-weight: 700; color: #1e40af; margin-bottom: .5rem; }
+.qa-item input[type="text"], .qa-item textarea { width: 100%; font-size: .92rem; }
+.qa-item textarea { min-height: 70px; }
+.qa-result { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.2rem; margin-top: 1.5rem; }
+.qa-result textarea { width: 100%; min-height: 450px; resize: vertical; font-family: Georgia, serif; font-size: 10.5pt; line-height: 1.7; border: 1px solid #e2e8f0; border-radius: 6px; padding: .75rem; }
+
+/* ── Interactive sub-tabs ─────────────────────────── */
+.int-subtabs { display: flex; gap: .35rem; margin-bottom: 1.25rem; border-bottom: 1px solid #e2e8f0; }
+.int-subtab { padding: .45rem .9rem; border-radius: 6px 6px 0 0; border: none; background: transparent; font-size: .88rem; font-weight: 500; color: #64748b; cursor: pointer; transition: all .15s; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.int-subtab.active { color: #1e40af; border-bottom-color: #1e40af; font-weight: 600; }
+.int-subtab:hover:not(.active) { background: #eff6ff; color: #1e40af; }
+.int-pane { display: none; }
+.int-pane.active { display: block; }
+.qa-job-sep { margin-top: 1.4rem; padding-top: 1.4rem; border-top: 1px solid #e2e8f0; }
+.qa-job-header { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; margin-bottom: .2rem; }
+.qa-job-title-text { font-weight: 700; font-size: .95rem; color: #0f172a; }
+.qa-job-company    { font-weight: 600; color: #1e40af; font-size: .88rem; }
+.qa-job-dates      { font-size: .8rem; color: #94a3b8; margin-left: auto; }
+
+/* ── Portfolio ────────────────────────────────────── */
+.portfolio-container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+.portfolio-header { display: flex; align-items: flex-end; gap: .75rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.portfolio-header h2 { font-size: 1.4rem; font-weight: 700; flex: 1; }
+.portfolio-username { display: flex; gap: .5rem; align-items: center; margin-left: 3rem; }
+.portfolio-username input { padding: .45rem .8rem; border-radius: 6px; border: 1px solid #cbd5e1; font-size: .9rem; width: 200px; }
+.portfolio-empty { text-align: center; padding: 4rem 1rem; color: #94a3b8; font-size: .95rem; }
+.repo-grid-lp { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.4rem; }
+.repo-card-lp { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 1.4rem; display: flex; flex-direction: column; gap: .85rem; box-shadow: 0 2px 8px rgba(0,0,0,.05); transition: transform .18s, box-shadow .18s; }
+.repo-card-lp:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,.11); }
+.repo-card-lp-header { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+.repo-card-lp-name { font-size: 1.05rem; font-weight: 700; color: #1e293b; text-decoration: none; line-height: 1.3; }
+.repo-card-lp-name:hover { color: #1e40af; }
+.repo-live-btn { flex-shrink: 0; font-size: .8rem; font-weight: 600; color: #059669; background: #ecfdf5; border-radius: 6px; padding: .25rem .6rem; text-decoration: none; border: 1px solid #a7f3d0; white-space: nowrap; }
+.repo-live-btn:hover { background: #d1fae5; }
+.repo-card-lp-desc { font-size: .92rem; color: #374151; line-height: 1.65; flex: 1; display: block !important; -webkit-line-clamp: unset !important; overflow: visible !important; }
+.repo-card-lp-tags { display: flex; flex-wrap: wrap; gap: .35rem; }
+.repo-tech-tag { font-size: .76rem; font-weight: 500; padding: .18rem .6rem; border-radius: 999px; background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+.repo-card-lp-footer { display: flex; align-items: center; gap: .5rem; padding-top: .75rem; border-top: 1px solid #f1f5f9; font-size: .8rem; flex-wrap: wrap; }
+.repo-card-lp-stats { color: #64748b; }
+.repo-card-lp-date  { color: #94a3b8; margin-left: auto; }
+.repo-card-lp-link  { color: #1e40af; font-weight: 600; text-decoration: none; }
+.repo-card-lp-link:hover { text-decoration: underline; }
+
+/* ── Demo banner ──────────────────────────────────── */
+.demo-banner { background: #fef3c7; border-bottom: 1px solid #fcd34d; padding: .5rem 1.5rem; font-size: .82rem; color: #92400e; text-align: center; position: fixed; top: 56px; left: 0; right: 0; z-index: 99; }
+.demo-banner a { color: #92400e; font-weight: 700; }
+.layout, .tab-pane { padding-top: 0; }
+.layout { margin-top: calc(56px + 34px); }
+.tab-pane { padding-top: calc(56px + 34px); }
+.sidebar { top: calc(56px + 34px); height: calc(100vh - 56px - 34px); }
+
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-group.span-2 { grid-column: span 1; }
+  .letter-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="navbar-left">
+    <button class="section-tab brand-tab active" data-apptab="cv">📄 CV Builder</button>
+    <button class="section-tab" data-apptab="letter">✉ Cover Letter</button>
+    <button class="section-tab" data-apptab="portfolio">🚀 Portfolio</button>
+  </div>
+  <div class="navbar-actions" id="ctrl-cv">
+    <span class="save-indicator" id="save-indicator">✓ Saved</span>
+  </div>
+  <div class="navbar-actions" id="ctrl-letter" style="display:none">
+    <button class="btn btn-primary btn-sm" onclick="downloadLetterPDF()">⬇ Download Letter PDF</button>
+  </div>
+  <div class="navbar-actions" id="ctrl-portfolio" style="display:none"></div>
+</nav>
+
+<!-- Demo notice -->
+<div class="demo-banner">
+  📄 <strong>Demo mode</strong> — all menus are navigable with sample data.
+  PDF export and live preview require running the server:
+  <code style="background:rgba(0,0,0,.08);padding:.1rem .35rem;border-radius:3px">uvicorn app:app --reload</code>
+</div>
+
+<!-- ═══ CV BUILDER TAB ══════════════════════════════ -->
+<div class="tab-pane active" id="pane-cv">
+<div class="layout" style="margin-top:0">
+
+  <aside class="sidebar">
+    <div class="sidebar-label">Sections</div>
+    <a class="nav-item active" data-section="personal"><span class="icon">👤</span> Personal Info</a>
+    <a class="nav-item" data-section="experience"><span class="icon">💼</span> Work Experience</a>
+    <a class="nav-item" data-section="education"><span class="icon">🎓</span> Education</a>
+    <a class="nav-item" data-section="certifications"><span class="icon">🏅</span> Certifications</a>
+    <a class="nav-item" data-section="skills"><span class="icon">⚡</span> Skills</a>
+    <a class="nav-item" data-section="languages"><span class="icon">🌐</span> Languages</a>
+    <a class="nav-item" data-section="projects"><span class="icon">🚀</span> Projects</a>
+    <div class="divider" style="margin:.6rem 0"></div>
+    <a class="nav-item" data-section="preview"><span class="icon">👁</span> Preview</a>
+  </aside>
+
+  <main class="content">
+
+    <!-- PERSONAL INFO -->
+    <section class="section active" id="section-personal">
+      <div class="section-header"><div class="section-title">Personal Information</div></div>
+      <div class="card">
+        <div class="form-group" style="margin-bottom:1.2rem">
+          <label>Profile Photo</label>
+          <div class="photo-upload-area">
+            <div id="photo-preview-wrap"><div class="photo-placeholder">👤</div></div>
+            <div>
+              <button class="btn btn-ghost btn-sm" onclick="toast('Photo upload requires the server — run uvicorn app:app --reload', true)">Upload photo</button>
+              <p class="text-muted" style="margin-top:.4rem">JPG, PNG or WEBP · 300×300 px recommended</p>
+            </div>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group"><label>Full Name</label><input type="text" id="p-name"></div>
+          <div class="form-group"><label>Professional Title</label><input type="text" id="p-title"></div>
+          <div class="form-group"><label>Email</label><input type="email" id="p-email"></div>
+          <div class="form-group"><label>Phone</label><input type="tel" id="p-phone"></div>
+          <div class="form-group"><label>Location</label><input type="text" id="p-location"></div>
+          <div class="form-group"><label>LinkedIn URL</label><input type="url" id="p-linkedin"></div>
+          <div class="form-group"><label>GitHub URL</label><input type="url" id="p-github"></div>
+          <div class="form-group"><label>Website / Portfolio</label><input type="url" id="p-website"></div>
+          <div class="form-group span-2"><label>Professional Summary</label><textarea id="p-summary" rows="4"></textarea></div>
+        </div>
+        <div style="margin-top:1rem;text-align:right">
+          <button class="btn btn-success" onclick="savePersonal()">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- WORK EXPERIENCE -->
+    <section class="section" id="section-experience">
+      <div class="section-header">
+        <div class="section-title">Work Experience</div>
+        <button class="btn btn-success btn-sm" onclick="openExpModal()">+ Add</button>
+      </div>
+      <div id="experience-list"></div>
+    </section>
+
+    <!-- EDUCATION -->
+    <section class="section" id="section-education">
+      <div class="section-header">
+        <div class="section-title">Academic Record</div>
+        <button class="btn btn-success btn-sm" onclick="openEduModal()">+ Add</button>
+      </div>
+      <div id="education-list"></div>
+    </section>
+
+    <!-- CERTIFICATIONS -->
+    <section class="section" id="section-certifications">
+      <div class="section-header">
+        <div class="section-title">Certifications</div>
+        <button class="btn btn-success btn-sm" onclick="openCertModal()">+ Add</button>
+      </div>
+      <div id="certifications-list"></div>
+    </section>
+
+    <!-- SKILLS -->
+    <section class="section" id="section-skills">
+      <div class="section-header">
+        <div class="section-title">Skills</div>
+        <button class="btn btn-success btn-sm" onclick="openSkillModal()">+ Add Category</button>
+      </div>
+      <div id="skills-list"></div>
+    </section>
+
+    <!-- LANGUAGES -->
+    <section class="section" id="section-languages">
+      <div class="section-header">
+        <div class="section-title">Languages</div>
+        <button class="btn btn-success btn-sm" onclick="openLangModal()">+ Add</button>
+      </div>
+      <div id="languages-list"></div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="section" id="section-projects">
+      <div class="section-header">
+        <div class="section-title">Projects</div>
+        <button class="btn btn-success btn-sm" onclick="openProjModal()">+ Add</button>
+      </div>
+      <div id="projects-list"></div>
+    </section>
+
+    <!-- PREVIEW -->
+    <section class="section" id="section-preview">
+      <div class="section-header">
+        <div class="section-title">CV Preview</div>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <button class="btn btn-ghost btn-sm" onclick="changeZoom(-0.1)">−</button>
+          <span id="zoom-label" style="font-size:.82rem;color:#64748b;min-width:3rem;text-align:center">75%</span>
+          <button class="btn btn-ghost btn-sm" onclick="changeZoom(0.1)">+</button>
+          <button class="btn btn-primary btn-sm" id="download-pdf-btn" onclick="toast('PDF export requires the server — run uvicorn app:app --reload', true)">⬇ Download PDF</button>
+        </div>
+      </div>
+
+      <div class="preview-tabs" id="preview-tabs">
+        <button class="preview-tab active" data-tpl="classic">Classic</button>
+        <button class="preview-tab" data-tpl="modern">Modern</button>
+        <button class="preview-tab" data-tpl="executive">Executive</button>
+        <button class="preview-tab" data-tpl="tech">Tech / Developer</button>
+        <button class="preview-tab" data-tpl="creative">Creative</button>
+        <button class="preview-tab" data-tpl="minimal">Minimal</button>
+      </div>
+
+      <div class="page-mode-bar">
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span class="page-mode-label">Page limit:</span>
+          <button class="page-pill active" data-pages="1" onclick="setPageMode(1)">1 page</button>
+          <button class="page-pill" data-pages="2" onclick="setPageMode(2)">2 pages</button>
+        </div>
+        <span id="page-count-label" class="page-count-badge"></span>
+      </div>
+
+      <div class="preview-stage">
+        <div class="preview-placeholder">
+          <div style="font-size:3rem;margin-bottom:1rem">📄</div>
+          <h3>Live preview requires the server</h3>
+          <p>Start the app locally to see your CV rendered in any of the 6 templates with real-time updates.</p>
+          <p style="margin-top:1rem"><code>uvicorn app:app --reload</code></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+</div>
+
+<!-- ═══ COVER LETTER TAB ════════════════════════════ -->
+<div class="tab-pane" id="pane-letter">
+  <div class="letter-container">
+    <div class="letter-subtabs">
+      <button class="letter-subtab active" data-ltab="quick">Quick Draft</button>
+      <button class="letter-subtab" data-ltab="interactive">Interactive</button>
+    </div>
+
+    <!-- Quick Draft -->
+    <div class="letter-pane active" id="ltab-quick">
+      <div class="letter-grid">
+        <div class="letter-meta-card">
+          <div class="form-group"><label>Target Company</label><input type="text" id="letter-company" placeholder="e.g. Google"></div>
+          <div class="form-group"><label>Position / Role</label><input type="text" id="letter-position" placeholder="e.g. Senior Data Scientist"></div>
+          <div class="form-group"><label>Recipient</label><input type="text" id="letter-recipient" placeholder="Hiring Manager"></div>
+          <div class="form-group"><label>Language</label>
+            <select id="letter-lang">
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+            </select>
+          </div>
+          <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">
+            <button class="btn btn-success" onclick="generateQuickDraft()">↺ Auto-generate from CV</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('letter-text').value=''">Clear</button>
+          </div>
+        </div>
+        <div class="letter-editor">
+          <textarea id="letter-text" placeholder="Click 'Auto-generate from CV' to create a first draft, then edit freely."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive -->
+    <div class="letter-pane" id="ltab-interactive">
+      <div class="int-subtabs">
+        <button class="int-subtab active" data-itab="past-jobs">Past Jobs</button>
+        <button class="int-subtab" data-itab="applying-job">Applying Job</button>
+      </div>
+      <div class="int-pane active" id="itab-past-jobs">
+        <p class="text-muted" style="margin-bottom:1.1rem">Answer the questions for each of your past roles. Your answers will be woven into the cover letter.</p>
+        <div id="past-jobs-qa"></div>
+      </div>
+      <div class="int-pane" id="itab-applying-job">
+        <div class="qa-list">
+          <div class="qa-item">
+            <div class="qa-label">1 · Target company and role</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+              <input type="text" id="qa-company" placeholder="Company name">
+              <input type="text" id="qa-position" placeholder="Role / Position">
+            </div>
+          </div>
+          <div class="qa-item">
+            <div class="qa-label">2 · Why are you specifically interested in this company?</div>
+            <textarea id="qa-why" rows="3" placeholder="Products, mission, market position, growth…"></textarea>
+          </div>
+          <div class="qa-item">
+            <div class="qa-label">3 · What is your standout achievement for this position?</div>
+            <textarea id="qa-achievement" rows="3" placeholder="A specific project, metric, or result…"></textarea>
+          </div>
+          <div class="qa-item">
+            <div class="qa-label">4 · What unique value do you bring that others might not?</div>
+            <textarea id="qa-unique" rows="3" placeholder="Skills, domain expertise, or perspective…"></textarea>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-success" style="margin-top:1.2rem" onclick="generateInteractiveLetter()">Generate Letter from All Answers</button>
+      <div class="qa-result" id="qa-result" style="display:none;margin-top:1.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+          <strong>Generated letter — edit freely before downloading</strong>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qa-result').style.display='none'">Hide</button>
+        </div>
+        <textarea id="interactive-letter-text"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PORTFOLIO TAB ════════════════════════════════ -->
+<div class="tab-pane" id="pane-portfolio">
+  <div class="portfolio-container">
+    <div class="portfolio-header">
+      <div>
+        <a href="https://www.forwardforecasting.eu" target="_blank" rel="noopener"
+           style="display:inline-block;margin-bottom:1.6rem;font-size:1rem;color:#2563eb;font-weight:500;text-decoration:none">
+          🌐 Visit my Landing Page: www.forwardforecasting.eu
+        </a>
+        <h2 style="text-align:left">Public GitHub Repositories</h2>
+      </div>
+      <div class="portfolio-username">
+        <input type="text" id="github-username-field" placeholder="GitHub username"
+               onkeydown="if(event.key==='Enter')loadPortfolio()">
+        <button class="btn btn-success btn-sm" onclick="loadPortfolio()">Load Repos</button>
+      </div>
+    </div>
+    <div id="repo-grid" class="repo-grid-lp"></div>
+  </div>
+</div>
+
+<!-- ──────────────── MODALS ──────────────────────── -->
+
+<!-- Experience Modal -->
+<div class="modal-overlay" id="exp-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="exp-modal-title">Add Experience</span><button class="modal-close" onclick="closeModal('exp-modal')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="exp-id">
+      <div class="form-grid">
+        <div class="form-group"><label>Company</label><input type="text" id="exp-company" placeholder="Company name"></div>
+        <div class="form-group"><label>Position / Title</label><input type="text" id="exp-position" placeholder="Your role"></div>
+        <div class="form-group"><label>Start (Month/Year)</label><input type="month" id="exp-start"></div>
+        <div class="form-group"><label>End (Month/Year)</label><input type="month" id="exp-end"></div>
+        <div class="form-group span-2 checkbox-row"><input type="checkbox" id="exp-current"><label for="exp-current">Currently working here</label></div>
+        <div class="form-group"><label>Location</label><input type="text" id="exp-location" placeholder="City, Country"></div>
+        <div class="form-group span-2"><label>Description & Achievements</label><textarea id="exp-description" rows="5" placeholder="Role, responsibilities, achievements…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('exp-modal')">Cancel</button><button class="btn btn-success" onclick="saveExp()">Save</button></div>
+  </div>
+</div>
+
+<!-- Education Modal -->
+<div class="modal-overlay" id="edu-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="edu-modal-title">Add Education</span><button class="modal-close" onclick="closeModal('edu-modal')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="edu-id">
+      <div class="form-grid">
+        <div class="form-group span-2"><label>Institution</label><input type="text" id="edu-institution" placeholder="University / School name"></div>
+        <div class="form-group"><label>Degree</label><input type="text" id="edu-degree" placeholder="e.g. PhD, MSc, BSc"></div>
+        <div class="form-group"><label>Field of Study</label><input type="text" id="edu-field" placeholder="e.g. Computer Science"></div>
+        <div class="form-group"><label>Start Year</label><input type="text" id="edu-start" placeholder="2010"></div>
+        <div class="form-group"><label>End Year</label><input type="text" id="edu-end" placeholder="2015"></div>
+        <div class="form-group"><label>Grade / GPA</label><input type="text" id="edu-grade" placeholder="e.g. Magna Cum Laude"></div>
+        <div class="form-group span-2"><label>Description (optional)</label><textarea id="edu-description" rows="3" placeholder="Thesis, exchange programs, notable projects…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('edu-modal')">Cancel</button><button class="btn btn-success" onclick="saveEdu()">Save</button></div>
+  </div>
+</div>
+
+<!-- Certification Modal -->
+<div class="modal-overlay" id="cert-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="cert-modal-title">Add Certification</span><button class="modal-close" onclick="closeModal('cert-modal')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cert-id">
+      <div class="form-grid">
+        <div class="form-group span-2"><label>Certification Name</label><input type="text" id="cert-name" placeholder="e.g. AWS Solutions Architect"></div>
+        <div class="form-group"><label>Issuing Organisation</label><input type="text" id="cert-issuer" placeholder="e.g. Amazon Web Services"></div>
+        <div class="form-group"><label>Date Obtained</label><input type="month" id="cert-date"></div>
+        <div class="form-group"><label>Expiry Date (optional)</label><input type="month" id="cert-expiry"></div>
+        <div class="form-group"><label>Credential URL (optional)</label><input type="url" id="cert-url" placeholder="https://…"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('cert-modal')">Cancel</button><button class="btn btn-success" onclick="saveCert()">Save</button></div>
+  </div>
+</div>
+
+<!-- Skills Modal -->
+<div class="modal-overlay" id="skill-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="skill-modal-title">Add Skill Category</span><button class="modal-close" onclick="closeModal('skill-modal')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="skill-id">
+      <div class="form-group" style="margin-bottom:1rem"><label>Category name</label><input type="text" id="skill-category" placeholder="e.g. Machine Learning"></div>
+      <div class="form-group"><label>Skills (press Enter to add)</label>
+        <div class="tags-input-row"><input type="text" id="skill-tag-input" placeholder="Type a skill and press Enter…"></div>
+        <div class="tags-container" id="skill-tags"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('skill-modal')">Cancel</button><button class="btn btn-success" onclick="saveSkill()">Save</button></div>
+  </div>
+</div>
+
+<!-- Language Modal -->
+<div class="modal-overlay" id="lang-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="lang-modal-title">Add Language</span><button class="modal-close" onclick="closeModal('lang-modal')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="lang-id">
+      <div class="form-grid">
+        <div class="form-group"><label>Language</label><input type="text" id="lang-language" placeholder="e.g. Spanish"></div>
+        <div class="form-group"><label>Level</label>
+          <select id="lang-level">
+            <option>Native</option><option>Fluent</option><option>Professional</option><option>Conversational</option><option>Basic</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('lang-modal')">Cancel</button><button class="btn btn-success" onclick="saveLang()">Save</button></div>
+  </div>
+</div>
+
+<!-- Project Modal -->
+<div class="modal-overlay" id="proj-modal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="proj-modal-title">Add Project</span><button class="modal-close" onclick="closeModal('proj-modal')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="proj-id">
+      <div class="form-grid">
+        <div class="form-group span-2"><label>Project Name</label><input type="text" id="proj-name" placeholder="e.g. Fraud Detection Pipeline"></div>
+        <div class="form-group span-2"><label>Description</label><textarea id="proj-description" rows="4" placeholder="What did you build? What problem did it solve?"></textarea></div>
+        <div class="form-group"><label>URL (optional)</label><input type="url" id="proj-url" placeholder="https://github.com/…"></div>
+        <div class="form-group">
+          <label>Technologies (press Enter to add)</label>
+          <div class="tags-input-row"><input type="text" id="proj-tag-input" placeholder="Python, FastAPI…"></div>
+          <div class="tags-container" id="proj-tags"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('proj-modal')">Cancel</button><button class="btn btn-success" onclick="saveProj()">Save</button></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ──────────────── JAVASCRIPT ─────────────────────── -->
+<script>
+// ── Dummy CV data (replace personal info with sample data) ──
+let cv = {
+  personal: {
+    name: "Alex Morgan",
+    title: "Senior Data Scientist",
+    email: "alex.morgan@example.com",
+    phone: "+1 555 123 4567",
+    location: "San Francisco, CA",
+    linkedin: "https://linkedin.com/in/alexmorgan",
+    github: "https://github.com/alexmorgan",
+    website: "https://alexmorgan.dev",
+    summary: "Data scientist with 8+ years of experience building production ML systems and analytics platforms across fintech, e-commerce, and healthcare. Passionate about turning messy data into clear, actionable decisions.",
+    photo: null
+  },
+  experience: [
+    { id:"e1", company:"Stripe", position:"Senior Data Scientist", start_date:"2021-03", end_date:null, current:true, location:"San Francisco, CA", description:"Led fraud detection model overhaul, reducing false positives by 34% while catching 12% more fraud. Built real-time feature pipeline processing 50k events/sec. Mentored a team of 4 junior data scientists and drove adoption of standardised ML evaluation practices." },
+    { id:"e2", company:"Shopify", position:"Data Scientist", start_date:"2018-06", end_date:"2021-02", current:false, location:"Ottawa, Canada", description:"Developed merchant churn prediction model deployed to 1M+ stores. Built A/B testing framework used across 6 product teams. Delivered weekly executive dashboards on platform health metrics and revenue forecasts." },
+    { id:"e3", company:"IBM Research", position:"Research Analyst", start_date:"2016-08", end_date:"2018-05", current:false, location:"New York, NY", description:"Conducted NLP research on automated document classification. Published 2 peer-reviewed conference papers. Co-authored internal toolkit adopted by 3 business units within the first year." }
+  ],
+  education: [
+    { id:"edu1", institution:"Carnegie Mellon University", degree:"MSc", field:"Machine Learning", start_date:"2014", end_date:"2016", grade:"GPA 3.9/4.0", description:"Thesis: Deep reinforcement learning for supply chain optimisation." },
+    { id:"edu2", institution:"University of Michigan", degree:"BSc", field:"Statistics & Computer Science", start_date:"2010", end_date:"2014", grade:"Summa Cum Laude", description:"" }
+  ],
+  certifications: [
+    { id:"c1", name:"AWS Certified Machine Learning Specialty", issuer:"Amazon Web Services", date:"2023-04", url:"https://aws.amazon.com/certification/" },
+    { id:"c2", name:"TensorFlow Developer Certificate", issuer:"Google", date:"2022-09", url:"https://www.tensorflow.org/certificate" },
+    { id:"c3", name:"Professional Data Engineer", issuer:"Google Cloud", date:"2022-01", url:"https://cloud.google.com/certification/data-engineer" }
+  ],
+  skills: [
+    { id:"s1", category:"Machine Learning", items:["PyTorch","TensorFlow","scikit-learn","XGBoost","LightGBM"] },
+    { id:"s2", category:"Data Engineering", items:["Apache Spark","Airflow","dbt","Kafka","BigQuery"] },
+    { id:"s3", category:"Languages",        items:["Python","SQL","R","Scala","TypeScript"] },
+    { id:"s4", category:"Cloud & MLOps",    items:["AWS SageMaker","GCP Vertex AI","Docker","Kubernetes","MLflow"] }
+  ],
+  languages: [
+    { id:"l1", language:"English", level:"Native" },
+    { id:"l2", language:"Spanish", level:"Professional" },
+    { id:"l3", language:"French",  level:"Conversational" }
+  ],
+  projects: [
+    { id:"p1", name:"OpenForecast", description:"Open-source time-series forecasting library supporting 12 algorithms with automatic hyperparameter tuning. 2.3k GitHub stars.", url:"https://github.com/alexmorgan/openforecast", technologies:["Python","NumPy","Prophet","ARIMA","Optuna"] },
+    { id:"p2", name:"DataLens Dashboard", description:"Self-service BI dashboard builder with natural language query support and auto-generated chart recommendations.", url:"https://github.com/alexmorgan/datalens", technologies:["React","FastAPI","PostgreSQL","LLM"] }
+  ]
+};
+
+// ── Boot ──────────────────────────────────────────────
+function boot() {
+  renderPersonal();
+  ['experience','education','certifications','skills','languages','projects'].forEach(renderList);
+  renderPortfolioDemoCards();
+}
+
+// ── Persist to localStorage (demo) ───────────────────
+let saveTimer;
+function persist() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem('cv-builder-demo', JSON.stringify(cv)); } catch(e) {}
+    flashSave();
+  }, 600);
+}
+
+function flashSave() {
+  const el = document.getElementById('save-indicator');
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 2000);
+}
+
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (isError ? ' error' : '');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+const uid = () => Math.random().toString(36).slice(2,10);
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── Navigation ────────────────────────────────────────
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const sec = el.dataset.section;
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(`section-${sec}`).classList.add('active');
+  });
+});
+
+// ── App tab switching ─────────────────────────────────
+document.querySelectorAll('.section-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.apptab;
+    document.querySelectorAll('.section-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById(`pane-${tab}`).classList.add('active');
+    document.getElementById('ctrl-cv').style.display        = tab==='cv'        ? 'flex' : 'none';
+    document.getElementById('ctrl-letter').style.display    = tab==='letter'    ? 'flex' : 'none';
+    document.getElementById('ctrl-portfolio').style.display = tab==='portfolio' ? 'flex' : 'none';
+    if (tab === 'letter')    initLetter();
+  });
+});
+
+// ── Letter sub-tabs ───────────────────────────────────
+document.querySelectorAll('.letter-subtab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.letter-subtab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.letter-pane').forEach(p => p.classList.remove('active'));
+    const pane = document.getElementById(`ltab-${btn.dataset.ltab}`);
+    if (pane) pane.classList.add('active');
+    if (btn.dataset.ltab === 'interactive') renderPastJobsQA();
+  });
+});
+
+document.querySelectorAll('.int-subtab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.int-subtab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.int-pane').forEach(p => p.classList.remove('active'));
+    const pane = document.getElementById(`itab-${btn.dataset.itab}`);
+    if (pane) pane.classList.add('active');
+    if (btn.dataset.itab === 'past-jobs') renderPastJobsQA();
+  });
+});
+
+// ── Template pills (demo — no server preview) ─────────
+document.querySelectorAll('.preview-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.preview-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    toast(`Template "${btn.textContent}" selected — live preview requires the server`);
+  });
+});
+
+// ── Page mode ─────────────────────────────────────────
+function setPageMode(n) {
+  document.querySelectorAll('.page-pill').forEach(b =>
+    b.classList.toggle('active', parseInt(b.dataset.pages) === n));
+  toast(`Page limit set to ${n} — PDF export requires the server`);
+}
+
+function changeZoom(delta) {
+  const label = document.getElementById('zoom-label');
+  const current = parseInt(label.textContent) / 100;
+  const next = Math.min(2, Math.max(0.3, +(current + delta).toFixed(2)));
+  label.textContent = Math.round(next * 100) + '%';
+}
+
+// ── PERSONAL ─────────────────────────────────────────
+function renderPersonal() {
+  const p = cv.personal || {};
+  document.getElementById('p-name').value     = p.name     || '';
+  document.getElementById('p-title').value    = p.title    || '';
+  document.getElementById('p-email').value    = p.email    || '';
+  document.getElementById('p-phone').value    = p.phone    || '';
+  document.getElementById('p-location').value = p.location || '';
+  document.getElementById('p-linkedin').value = p.linkedin || '';
+  document.getElementById('p-github').value   = p.github   || '';
+  document.getElementById('p-website').value  = p.website  || '';
+  document.getElementById('p-summary').value  = p.summary  || '';
+}
+
+function savePersonal() {
+  cv.personal = {
+    ...cv.personal,
+    name:     document.getElementById('p-name').value.trim(),
+    title:    document.getElementById('p-title').value.trim(),
+    email:    document.getElementById('p-email').value.trim(),
+    phone:    document.getElementById('p-phone').value.trim(),
+    location: document.getElementById('p-location').value.trim(),
+    linkedin: document.getElementById('p-linkedin').value.trim(),
+    github:   document.getElementById('p-github').value.trim(),
+    website:  document.getElementById('p-website').value.trim(),
+    summary:  document.getElementById('p-summary').value.trim(),
+  };
+  persist();
+  toast('Personal info saved (demo — stored in browser)');
+}
+
+// ── Generic list renderer ─────────────────────────────
+function renderList(section) {
+  const container = document.getElementById(`${section}-list`);
+  const items = cv[section] || [];
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>No entries yet. Click "+ Add" to get started.</p></div>`;
+    return;
+  }
+  container.innerHTML = items.map(item => renderCard(section, item)).join('');
+}
+
+const MODAL_FN = { experience:'Exp', education:'Edu', certifications:'Cert', skills:'Skill', languages:'Lang', projects:'Proj' };
+
+function renderCard(section, item) {
+  const fn = MODAL_FN[section] || cap(section);
+  const actions = `<div class="card-actions"><button class="btn btn-ghost btn-sm" onclick='open${fn}Modal(${JSON.stringify(item.id)})'>Edit</button><button class="btn btn-danger btn-sm" onclick='deleteItem("${section}","${item.id}")'>Delete</button></div>`;
+  switch(section) {
+    case 'experience': return `<div class="card"><div class="card-header"><div><div class="card-title">${esc(item.position)} — ${esc(item.company)}</div><div class="card-subtitle">${fmtDate(item.start_date)} – ${item.current ? 'Present' : fmtDate(item.end_date)}${item.location ? ' · '+esc(item.location) : ''}</div></div>${actions}</div><p style="font-size:.88rem;color:#475569;white-space:pre-wrap">${esc(item.description||'')}</p></div>`;
+    case 'education':  return `<div class="card"><div class="card-header"><div><div class="card-title">${esc(item.degree)} in ${esc(item.field)}</div><div class="card-subtitle">${esc(item.institution)} · ${esc(item.end_date||'')}${item.grade ? ' · '+esc(item.grade) : ''}</div></div>${actions}</div>${item.description ? `<p style="font-size:.88rem;color:#475569">${esc(item.description)}</p>` : ''}</div>`;
+    case 'certifications': return `<div class="card"><div class="card-header"><div><div class="card-title">${esc(item.name)}</div><div class="card-subtitle">${esc(item.issuer||'')}${item.date ? ' · '+fmtDate(item.date) : ''}</div></div>${actions}</div>${item.url ? `<a href="${esc(item.url)}" target="_blank" style="font-size:.82rem;color:#2563eb">View credential ↗</a>` : ''}</div>`;
+    case 'skills':     return `<div class="card"><div class="card-header"><div class="card-title">${esc(item.category)}</div>${actions}</div><div class="tags-container">${(item.items||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></div>`;
+    case 'languages':  return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><div><span class="card-title">${esc(item.language)}</span><span class="text-muted" style="margin-left:.75rem">${esc(item.level)}</span></div>${actions}</div>`;
+    case 'projects':   return `<div class="card"><div class="card-header"><div><div class="card-title">${esc(item.name)}</div>${item.url ? `<a class="card-subtitle" href="${esc(item.url)}" target="_blank">${esc(item.url)}</a>` : ''}</div>${actions}</div><p style="font-size:.88rem;color:#475569;margin-bottom:.6rem">${esc(item.description||'')}</p><div class="tags-container">${(item.technologies||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></div>`;
+  }
+}
+
+function deleteItem(section, id) {
+  if (!confirm('Delete this entry?')) return;
+  cv[section] = (cv[section]||[]).filter(i => i.id !== id);
+  renderList(section);
+  persist();
+  toast('Deleted');
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const [y, m] = d.split('-');
+  if (!m) return y;
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[parseInt(m,10)-1]} ${y}`;
+}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ── Experience Modal ──────────────────────────────────
+let skillTags = [], projTags = [];
+
+function openExpModal(id=null) {
+  const item = id ? cv.experience.find(i=>i.id===id) : null;
+  document.getElementById('exp-modal-title').textContent = id ? 'Edit Experience' : 'Add Experience';
+  document.getElementById('exp-id').value          = item?.id || '';
+  document.getElementById('exp-company').value     = item?.company || '';
+  document.getElementById('exp-position').value    = item?.position || '';
+  document.getElementById('exp-start').value       = item?.start_date || '';
+  document.getElementById('exp-end').value         = item?.end_date || '';
+  document.getElementById('exp-current').checked   = item?.current || false;
+  document.getElementById('exp-location').value    = item?.location || '';
+  document.getElementById('exp-description').value = item?.description || '';
+  openModal('exp-modal');
+}
+function saveExp() {
+  const id = document.getElementById('exp-id').value || uid();
+  upsert('experience', { id, company:document.getElementById('exp-company').value.trim(), position:document.getElementById('exp-position').value.trim(), start_date:document.getElementById('exp-start').value, end_date:document.getElementById('exp-end').value, current:document.getElementById('exp-current').checked, location:document.getElementById('exp-location').value.trim(), description:document.getElementById('exp-description').value.trim() });
+  closeModal('exp-modal'); toast('Experience saved');
+}
+
+// ── Education Modal ───────────────────────────────────
+function openEduModal(id=null) {
+  const item = id ? cv.education.find(i=>i.id===id) : null;
+  document.getElementById('edu-modal-title').textContent = id ? 'Edit Education' : 'Add Education';
+  document.getElementById('edu-id').value          = item?.id || '';
+  document.getElementById('edu-institution').value = item?.institution || '';
+  document.getElementById('edu-degree').value      = item?.degree || '';
+  document.getElementById('edu-field').value       = item?.field || '';
+  document.getElementById('edu-start').value       = item?.start_date || '';
+  document.getElementById('edu-end').value         = item?.end_date || '';
+  document.getElementById('edu-grade').value       = item?.grade || '';
+  document.getElementById('edu-description').value = item?.description || '';
+  openModal('edu-modal');
+}
+function saveEdu() {
+  const id = document.getElementById('edu-id').value || uid();
+  upsert('education', { id, institution:document.getElementById('edu-institution').value.trim(), degree:document.getElementById('edu-degree').value.trim(), field:document.getElementById('edu-field').value.trim(), start_date:document.getElementById('edu-start').value, end_date:document.getElementById('edu-end').value, grade:document.getElementById('edu-grade').value.trim(), description:document.getElementById('edu-description').value.trim() });
+  closeModal('edu-modal'); toast('Education saved');
+}
+
+// ── Certification Modal ───────────────────────────────
+function openCertModal(id=null) {
+  const item = id ? cv.certifications.find(i=>i.id===id) : null;
+  document.getElementById('cert-modal-title').textContent = id ? 'Edit Certification' : 'Add Certification';
+  document.getElementById('cert-id').value     = item?.id || '';
+  document.getElementById('cert-name').value   = item?.name || '';
+  document.getElementById('cert-issuer').value = item?.issuer || '';
+  document.getElementById('cert-date').value   = item?.date || '';
+  document.getElementById('cert-expiry').value = item?.expiry || '';
+  document.getElementById('cert-url').value    = item?.url || '';
+  openModal('cert-modal');
+}
+function saveCert() {
+  const id = document.getElementById('cert-id').value || uid();
+  upsert('certifications', { id, name:document.getElementById('cert-name').value.trim(), issuer:document.getElementById('cert-issuer').value.trim(), date:document.getElementById('cert-date').value, expiry:document.getElementById('cert-expiry').value, url:document.getElementById('cert-url').value.trim() });
+  closeModal('cert-modal'); toast('Certification saved');
+}
+
+// ── Skills Modal ──────────────────────────────────────
+function openSkillModal(id=null) {
+  const item = id ? cv.skills.find(i=>i.id===id) : null;
+  document.getElementById('skill-modal-title').textContent = id ? 'Edit Skill Category' : 'Add Skill Category';
+  document.getElementById('skill-id').value       = item?.id || '';
+  document.getElementById('skill-category').value = item?.category || '';
+  skillTags = item?.items ? [...item.items] : [];
+  renderSkillTags();
+  openModal('skill-modal');
+}
+document.getElementById('skill-tag-input').addEventListener('keydown', e => {
+  if (e.key==='Enter'||e.key===',') { e.preventDefault(); const v=e.target.value.trim().replace(/,$/,''); if(v&&!skillTags.includes(v)){skillTags.push(v);renderSkillTags();} e.target.value=''; }
+});
+function renderSkillTags() { document.getElementById('skill-tags').innerHTML = skillTags.map((t,i)=>`<span class="tag">${esc(t)} <span class="remove-tag" onclick="skillTags.splice(${i},1);renderSkillTags()">×</span></span>`).join(''); }
+function saveSkill() {
+  const v=document.getElementById('skill-tag-input').value.trim(); if(v&&!skillTags.includes(v))skillTags.push(v);
+  const id=document.getElementById('skill-id').value||uid();
+  upsert('skills',{id,category:document.getElementById('skill-category').value.trim(),items:[...skillTags]});
+  closeModal('skill-modal'); toast('Skills saved');
+}
+
+// ── Language Modal ────────────────────────────────────
+function openLangModal(id=null) {
+  const item = id ? cv.languages.find(i=>i.id===id) : null;
+  document.getElementById('lang-modal-title').textContent = id ? 'Edit Language' : 'Add Language';
+  document.getElementById('lang-id').value       = item?.id || '';
+  document.getElementById('lang-language').value = item?.language || '';
+  document.getElementById('lang-level').value    = item?.level || 'Professional';
+  openModal('lang-modal');
+}
+function saveLang() {
+  const id=document.getElementById('lang-id').value||uid();
+  upsert('languages',{id,language:document.getElementById('lang-language').value.trim(),level:document.getElementById('lang-level').value});
+  closeModal('lang-modal'); toast('Language saved');
+}
+
+// ── Project Modal ─────────────────────────────────────
+function openProjModal(id=null) {
+  const item = id ? cv.projects.find(i=>i.id===id) : null;
+  document.getElementById('proj-modal-title').textContent = id ? 'Edit Project' : 'Add Project';
+  document.getElementById('proj-id').value          = item?.id || '';
+  document.getElementById('proj-name').value        = item?.name || '';
+  document.getElementById('proj-description').value = item?.description || '';
+  document.getElementById('proj-url').value         = item?.url || '';
+  projTags = item?.technologies ? [...item.technologies] : [];
+  renderProjTags();
+  openModal('proj-modal');
+}
+document.getElementById('proj-tag-input').addEventListener('keydown', e => {
+  if (e.key==='Enter'||e.key===',') { e.preventDefault(); const v=e.target.value.trim().replace(/,$/,''); if(v&&!projTags.includes(v)){projTags.push(v);renderProjTags();} e.target.value=''; }
+});
+function renderProjTags() { document.getElementById('proj-tags').innerHTML = projTags.map((t,i)=>`<span class="tag">${esc(t)} <span class="remove-tag" onclick="projTags.splice(${i},1);renderProjTags()">×</span></span>`).join(''); }
+function saveProj() {
+  const v=document.getElementById('proj-tag-input').value.trim(); if(v&&!projTags.includes(v))projTags.push(v);
+  const id=document.getElementById('proj-id').value||uid();
+  upsert('projects',{id,name:document.getElementById('proj-name').value.trim(),description:document.getElementById('proj-description').value.trim(),url:document.getElementById('proj-url').value.trim(),technologies:[...projTags]});
+  closeModal('proj-modal'); toast('Project saved');
+}
+
+// ── Upsert helper ─────────────────────────────────────
+function upsert(section, item) {
+  if (!cv[section]) cv[section]=[];
+  const idx=cv[section].findIndex(i=>i.id===item.id);
+  if(idx>=0)cv[section][idx]=item; else cv[section].push(item);
+  renderList(section); persist();
+}
+
+// ── Cover Letter ──────────────────────────────────────
+function initLetter() {
+  const ta = document.getElementById('letter-text');
+  if (ta && !ta.value.trim()) generateQuickDraft();
+  renderPastJobsQA();
+}
+
+function renderPastJobsQA() {
+  const container = document.getElementById('past-jobs-qa');
+  if (!container) return;
+  const exps = cv.experience || [];
+  if (!exps.length) { container.innerHTML='<p class="text-muted">No work experience found.</p>'; return; }
+  container.innerHTML = exps.slice(0,6).map((e,i)=>`
+    <div class="qa-job-block ${i>0?'qa-job-sep':''}">
+      <div class="qa-job-header">
+        <span class="qa-job-title-text">${esc(e.position)}</span>
+        <span class="qa-job-company">${esc(e.company)}</span>
+        <span class="qa-job-dates">${e.start_date||''} – ${e.current?'Present':(e.end_date||'')}</span>
+      </div>
+      <div class="qa-list" style="margin-top:.75rem">
+        <div class="qa-item"><div class="qa-label">Most impactful project or initiative</div><textarea id="job-${i}-impact" rows="2" placeholder="Describe a key project, its goal, and the outcome…"></textarea></div>
+        <div class="qa-item"><div class="qa-label">Specific result or metric that best demonstrates your value</div><textarea id="job-${i}-metric" rows="2" placeholder="e.g. Reduced processing time by 40%…"></textarea></div>
+        <div class="qa-item"><div class="qa-label">Key skill or capability you developed or applied</div><textarea id="job-${i}-skill" rows="2" placeholder="Technical skill, leadership capability…"></textarea></div>
+      </div>
+    </div>`).join('');
+}
+
+function generateQuickDraft() {
+  const p=cv.personal||{}, exps=cv.experience||[];
+  const allSk=(cv.skills||[]).flatMap(s=>s.items||[]);
+  const topSk=allSk.slice(0,5).join(', ');
+  const company   = document.getElementById('letter-company').value.trim()   || '[Company]';
+  const position  = document.getElementById('letter-position').value.trim()  || '[Position]';
+  const recipient = document.getElementById('letter-recipient').value.trim() || 'Hiring Manager';
+  const lang      = document.getElementById('letter-lang').value;
+  const today     = new Date().toLocaleDateString(lang==='es'?'es-ES':'en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const firstYear = exps.length ? parseInt((exps[exps.length-1].start_date||'2010').split('-')[0]) : 2010;
+  const yearsExp  = new Date().getFullYear() - firstYear;
+  const compList  = exps.slice(0,3).map(e=>e.company).filter(Boolean).join(', ');
+  const latestExp = exps[0] || {};
+  const desc1     = (latestExp.description||'').split('.')[0];
+
+  let text;
+  if (lang==='es') {
+    text=`Estimado/a ${recipient},\n\nMe dirijo a usted para expresar mi interés en el puesto de ${position} en ${company}. Con más de ${yearsExp} años de experiencia en ${p.title||'análisis de datos e ingeniería'}, estoy seguro de poder aportar un valor real y medible a su equipo.\n\nA lo largo de mi carrera en organizaciones como ${compList}, he desarrollado una sólida experiencia en ${topSk}. En mi rol más reciente como ${latestExp.position||p.title||''} en ${latestExp.company||''}, ${desc1.charAt(0).toLowerCase()+desc1.slice(1)}.\n\nLo que más me atrae de ${company} es la oportunidad de aplicar mis capacidades técnicas y analíticas para resolver retos reales de negocio.\n\nEstaré encantado de ampliar esta información en una entrevista. Puede contactarme en ${p.email||''} o en el ${p.phone||''}.\n\nMuchas gracias por considerar mi candidatura.\n\nAtentamente,\n\n${p.name||''}\n${p.title||''}`;
+  } else {
+    text=`Dear ${recipient},\n\nI am writing to express my strong interest in the ${position} position at ${company}. With over ${yearsExp} years of experience in ${p.title||'data science and analytics'}, I am confident in my ability to deliver meaningful and measurable impact to your team.\n\nThroughout my career at organisations including ${compList}, I have built deep expertise in ${topSk}. In my most recent role as ${latestExp.position||p.title||''} at ${latestExp.company||''}, ${desc1.charAt(0).toLowerCase()+desc1.slice(1)}.\n\nWhat particularly draws me to ${company} is the opportunity to apply rigorous analytical thinking directly to real business challenges.\n\nI would welcome the opportunity to discuss how my background aligns with your needs. I can be reached at ${p.email||''} or ${p.phone||''}.\n\nThank you for considering my application.\n\nYours sincerely,\n\n${p.name||''}\n${p.title||''}`;
+  }
+  document.getElementById('letter-text').value = text;
+}
+
+function generateInteractiveLetter() {
+  const p=cv.personal||{}, exps=cv.experience||[];
+  const company  =(document.getElementById('qa-company')?.value||'').trim()||'[Company]';
+  const position =(document.getElementById('qa-position')?.value||'').trim()||'[Position]';
+  const why      =(document.getElementById('qa-why')?.value||'').trim();
+  const achieve  =(document.getElementById('qa-achievement')?.value||'').trim();
+  const unique   =(document.getElementById('qa-unique')?.value||'').trim();
+  const pastParas=exps.slice(0,6).map((e,i)=>{
+    const impact=(document.getElementById(`job-${i}-impact`)?.value||'').trim();
+    const metric=(document.getElementById(`job-${i}-metric`)?.value||'').trim();
+    const skill =(document.getElementById(`job-${i}-skill`)?.value||'').trim();
+    if(!impact&&!metric&&!skill)return null;
+    const parts=[];
+    if(impact)parts.push(`At ${e.company}, ${impact.charAt(0).toLowerCase()+impact.slice(1)}.`);
+    if(metric)parts.push(metric.endsWith('.')?metric:metric+'.');
+    if(skill) parts.push(`This experience deepened my expertise in ${skill}.`);
+    return parts.join(' ');
+  }).filter(Boolean);
+  const paragraphs=[`I am writing to apply for the ${position} position at ${company}. ${why}`.trim(),pastParas.join('\n\n'),achieve?`A particularly strong example of my impact: ${achieve}`:'',unique||'',`I look forward to discussing how I can contribute to ${company}.`].filter(Boolean);
+  const text=`Dear Hiring Manager,\n\n${paragraphs.join('\n\n')}\n\nYours sincerely,\n\n${p.name||''}\n${p.title||''}`;
+  const resultEl=document.getElementById('qa-result');
+  document.getElementById('interactive-letter-text').value=text;
+  resultEl.style.display='block';
+  resultEl.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function downloadLetterPDF() {
+  toast('PDF export requires the server — run uvicorn app:app --reload', true);
+}
+
+// ── Portfolio — mock repos for demo ───────────────────
+const MOCK_REPOS = [
+  { name:"openforecast", language:"Python", description:"Open-source time-series forecasting library.", url:"https://github.com/alexmorgan/openforecast", topics:["forecasting","machine-learning","python","time-series"], stars:2340, forks:187, updated:"2026-05-10", homepage:"https://openforecast.dev", summary:"OpenForecast is an open-source Python library for time-series forecasting that supports twelve different algorithms out of the box. It includes automatic hyperparameter tuning via Optuna, making it easy to find the best model without manual search. The library exposes a unified scikit-learn-compatible API so existing pipelines require minimal changes. Built-in cross-validation and backtesting utilities allow reliable evaluation of forecast quality on historical data. OpenForecast has been cited in three academic papers and is used in production by data teams at several fintech companies." },
+  { name:"datalens-dashboard", language:"TypeScript", description:"Self-service BI dashboard builder with NLQ support.", url:"https://github.com/alexmorgan/datalens-dashboard", topics:["bi","dashboard","react","fastapi","llm"], stars:891, forks:64, updated:"2026-04-28", homepage:"", summary:"DataLens is a self-service business intelligence dashboard builder that allows analysts to create interactive visualisations without writing code. Its standout feature is a natural language query interface powered by an LLM backend, enabling users to ask plain-English questions and receive auto-generated charts. The frontend is built with React and a custom charting layer, while the backend uses FastAPI connected to a PostgreSQL data warehouse. Role-based access control ensures that sensitive datasets are only visible to authorised team members. DataLens is deployed internally at two companies and handles over 500 daily active users." },
+  { name:"fraud-detector", language:"Python", description:"Real-time transaction fraud detection using gradient boosting.", url:"https://github.com/alexmorgan/fraud-detector", topics:["fraud-detection","xgboost","mlops","kafka"], stars:456, forks:39, updated:"2026-03-15", homepage:"", summary:"This repository contains a production-grade fraud detection pipeline built around XGBoost and a real-time Kafka feature stream. Raw payment events are enriched with velocity features computed over configurable rolling windows before scoring. The model was trained on a synthetic dataset of 10 million labelled transactions and achieves a 94% F1 score on held-out data. A FastAPI serving layer exposes a low-latency scoring endpoint with p99 latency under 8 ms. MLflow is used to track all experiments and automatically register models that surpass a minimum performance threshold." },
+  { name:"supply-chain-rl", language:"Python", description:"Reinforcement learning agent for supply chain inventory optimisation.", url:"https://github.com/alexmorgan/supply-chain-rl", topics:["reinforcement-learning","pytorch","supply-chain","optimization"], stars:312, forks:28, updated:"2026-02-20", homepage:"", summary:"Supply-Chain-RL implements a deep reinforcement learning agent that learns optimal inventory ordering policies in stochastic demand environments. The environment is modelled as a Markov Decision Process and trained using Proximal Policy Optimisation (PPO) from the Stable Baselines 3 library. Experiments show the agent reduces average holding costs by 18% compared to an industry-standard (s, S) heuristic across three benchmark demand distributions. A Gymnasium-compatible environment wrapper is provided so the code can be easily integrated into other RL research pipelines. The accompanying Jupyter notebooks reproduce all figures from the MSc thesis that inspired this project." },
+  { name:"readme-ai", language:"Python", description:"CLI tool that auto-generates README files from source code.", url:"https://github.com/alexmorgan/readme-ai", topics:["cli","llm","documentation","python"], stars:1205, forks:92, updated:"2026-05-01", homepage:"https://readme-ai.dev", summary:"readme-ai is a command-line tool that analyses a code repository and automatically generates a structured README file using a language model. It traverses the project tree, extracts docstrings, function signatures, and dependency manifests, and synthesises them into clear prose sections. The tool supports multiple output formats including Markdown, reStructuredText, and plain text. Configuration via a YAML file allows teams to enforce consistent README structure across all their repositories. readme-ai integrates with GitHub Actions so README drafts can be generated automatically on every pull request." },
+  { name:"cv-builder", language:"Python", description:"FastAPI + WeasyPrint CV builder with 6 PDF templates.", url:"https://github.com/alexmorgan/cv-builder", topics:["fastapi","weasyprint","pdf","cv","jinja2"], stars:178, forks:23, updated:"2026-05-21", homepage:"", summary:"CV Builder is a local web application for creating, editing, and exporting a professional curriculum vitae as a PDF in six different visual templates. The backend is powered by FastAPI and uses WeasyPrint for high-quality PDF rendering, while the frontend is a single-page vanilla JavaScript application with no external framework dependencies. A binary-search page-fitting algorithm automatically scales CSS to force content into exactly one or two pages. The application also includes a cover letter generator with quick-draft and guided interactive modes. A GitHub portfolio tab fetches public repositories and auto-generates five-sentence descriptions by parsing README files." },
+];
+
+function renderPortfolioDemoCards() {
+  const grid = document.getElementById('repo-grid');
+  grid.innerHTML = MOCK_REPOS.map(r => repoCard(r)).join('');
+}
+
+const LANG_COLORS = { Python:'#3572A5', JavaScript:'#f1e05a', TypeScript:'#2b7489', Java:'#b07219', 'C++':'#f34b7d', Go:'#00ADD8', Rust:'#dea584', Ruby:'#701516', Swift:'#ffac45', Kotlin:'#A97BFF', PHP:'#4F5D95', 'C#':'#178600', HTML:'#e34c26', CSS:'#563d7c', Shell:'#89e051', R:'#198CE7' };
+
+function repoCard(r) {
+  const color   = LANG_COLORS[r.language] || '#8b949e';
+  const langDot = r.language ? `<span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.82rem;font-weight:600;color:${color}"><span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block"></span>${esc(r.language)}</span>` : '';
+  const techTags = (r.topics||[]).slice(0,6).map(t=>`<span class="repo-tech-tag">${esc(t)}</span>`).join('');
+  const statsArr = [r.stars?`⭐ ${r.stars}`:'', r.forks?`🍴 ${r.forks}`:''].filter(Boolean);
+  const liveBtn  = r.homepage ? `<a href="${esc(r.homepage)}" target="_blank" class="repo-live-btn">🌐 Live</a>` : '';
+  return `
+  <div class="repo-card-lp" style="border-top:3px solid ${color}">
+    <div class="repo-card-lp-header">
+      <div><a class="repo-card-lp-name" href="${esc(r.url)}" target="_blank">${esc(r.name)}</a><div style="margin-top:.3rem">${langDot}</div></div>
+      ${liveBtn}
+    </div>
+    <p class="repo-card-lp-desc">${esc(r.summary||r.description||'')}</p>
+    ${techTags ? `<div class="repo-card-lp-tags">${techTags}</div>` : ''}
+    <div class="repo-card-lp-footer">
+      <span class="repo-card-lp-stats">${statsArr.join(' · ')}</span>
+      <span class="repo-card-lp-date">${r.updated ? 'Updated '+r.updated : ''}</span>
+      <a class="repo-card-lp-link" href="${esc(r.url)}" target="_blank">View on GitHub →</a>
+    </div>
+  </div>`;
+}
+
+async function loadPortfolio() {
+  toast('Live GitHub fetch requires the server — showing demo cards', true);
+  renderPortfolioDemoCards();
+}
+
+// ── Boot ──────────────────────────────────────────────
+boot();
+</script>
+</body>
+</html>
