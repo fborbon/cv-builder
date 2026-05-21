@@ -1,0 +1,38 @@
+# Required GitHub secret:
+#   GH_PAT — personal access token with repo write scope on forwardforecasting-landing
+
+name: Sync static demo to Landing
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Copy static demo to forwardforecasting-landing
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: fborbon/forwardforecasting-landing
+          token: ${{ secrets.GH_PAT }}
+          path: landing
+
+      - name: Copy static demo
+        run: cp index.html landing/cv-builder/index.html
+
+      - name: Commit and push
+        run: |
+          cd landing
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cv-builder/index.html
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "sync: update cv-builder demo from source repo"
+          git push
