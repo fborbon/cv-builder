@@ -426,6 +426,10 @@
           <input type="text" id="edu-grade" placeholder="e.g. Magna Cum Laude">
         </div>
         <div class="form-group span-2">
+          <label>Thesis / Credential URL (optional)</label>
+          <input type="url" id="edu-url" placeholder="https://…">
+        </div>
+        <div class="form-group span-2">
           <label>Description (optional)</label>
           <textarea id="edu-description" rows="3" placeholder="Thesis, exchange programs, notable projects…"></textarea>
         </div>
@@ -755,6 +759,7 @@ function renderCard(section, item) {
           </div>${actions}
         </div>
         ${item.description ? `<p style="font-size:.88rem;color:#475569">${esc(item.description)}</p>` : ''}
+        ${item.url ? `<a href="${esc(item.url)}" target="_blank" style="font-size:.82rem;color:#2563eb">View thesis ↗</a>` : ''}
       </div>`;
     case 'certifications': return `
       <div class="card">
@@ -846,6 +851,7 @@ function openEduModal(id=null) {
   document.getElementById('edu-start').value       = item?.start_date || '';
   document.getElementById('edu-end').value         = item?.end_date || '';
   document.getElementById('edu-grade').value       = item?.grade || '';
+  document.getElementById('edu-url').value         = item?.url || '';
   document.getElementById('edu-description').value = item?.description || '';
   openModal('edu-modal');
 }
@@ -859,6 +865,7 @@ function saveEdu() {
     start_date:  document.getElementById('edu-start').value,
     end_date:    document.getElementById('edu-end').value,
     grade:       document.getElementById('edu-grade').value.trim(),
+    url:         document.getElementById('edu-url').value.trim(),
     description: document.getElementById('edu-description').value.trim(),
   };
   upsert('education', item);

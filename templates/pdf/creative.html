@@ -154,7 +154,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e1e
       <div class="sec-title teal">Education</div>
       {% for e in cv.education %}
       <div class="entry">
-        <div class="entry-title">{{ e.degree }} — {{ e.field }}</div>
+        <div class="entry-title">{% if e.url %}<a href="{{ e.url }}" style="color:inherit;text-decoration:none">{{ e.degree }} — {{ e.field }}</a>{% else %}{{ e.degree }} — {{ e.field }}{% endif %}</div>
         <div class="entry-co">{{ e.institution }}</div>
         <div class="entry-date">{{ e.end_date }}{% if e.grade %} · {{ e.grade }}{% endif %}</div>
         {% if e.description %}<div class="entry-body">{{ e.description }}</div>{% endif %}

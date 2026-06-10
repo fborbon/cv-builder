@@ -118,7 +118,7 @@ body { font-family: 'Courier New', Courier, monospace; font-size: 9.5pt; color: 
     <div class="sec-head">Education</div>
     {% for e in cv.education %}
     <div class="entry">
-      <span class="e-title">{{ e.degree }} · {{ e.field }}</span>
+      <span class="e-title">{% if e.url %}<a href="{{ e.url }}" style="color:inherit;text-decoration:none">{{ e.degree }} · {{ e.field }}</a>{% else %}{{ e.degree }} · {{ e.field }}{% endif %}</span>
       <span class="e-date">{{ e.end_date }}</span>
       <div class="e-company">{{ e.institution }}{% if e.grade %} — {{ e.grade }}{% endif %}</div>
       {% if e.description %}<div class="e-body">{{ e.description }}</div>{% endif %}

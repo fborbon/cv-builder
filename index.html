@@ -511,6 +511,7 @@ textarea { resize: vertical; min-height: 90px; }
         <div class="form-group"><label>Start Year</label><input type="text" id="edu-start" placeholder="2010"></div>
         <div class="form-group"><label>End Year</label><input type="text" id="edu-end" placeholder="2015"></div>
         <div class="form-group"><label>Grade / GPA</label><input type="text" id="edu-grade" placeholder="e.g. Magna Cum Laude"></div>
+        <div class="form-group span-2"><label>Thesis / Credential URL (optional)</label><input type="url" id="edu-url" placeholder="https://…"></div>
         <div class="form-group span-2"><label>Description (optional)</label><textarea id="edu-description" rows="3" placeholder="Thesis, exchange programs, notable projects…"></textarea></div>
       </div>
     </div>
@@ -803,7 +804,7 @@ function renderCard(section, item) {
   const actions = `<div class="card-actions"><button class="btn btn-ghost btn-sm" onclick='open${fn}Modal(${JSON.stringify(item.id)})'>Edit</button><button class="btn btn-danger btn-sm" onclick='deleteItem("${section}","${item.id}")'>Delete</button></div>`;
   switch(section) {
     case 'experience': return `<div class="card"><div class="card-header"><div><div class="card-title">${esc(item.position)} — ${esc(item.company)}</div><div class="card-subtitle">${fmtDate(item.start_date)} – ${item.current ? 'Present' : fmtDate(item.end_date)}${item.location ? ' · '+esc(item.location) : ''}</div></div>${actions}</div><p style="font-size:.88rem;color:#475569;white-space:pre-wrap">${esc(item.description||'')}</p></div>`;
-    case 'education':  return `<div class="card"><div class="card-header"><div><div class="card-title">${esc(item.degree)} in ${esc(item.field)}</div><div class="card-subtitle">${esc(item.institution)} · ${esc(item.end_date||'')}${item.grade ? ' · '+esc(item.grade) : ''}</div></div>${actions}</div>${item.description ? `<p style="font-size:.88rem;color:#475569">${esc(item.description)}</p>` : ''}</div>`;
+    case 'education':  return `<div class="card"><div class="card-header"><div><div class="card-title">${esc(item.degree)} in ${esc(item.field)}</div><div class="card-subtitle">${esc(item.institution)} · ${esc(item.end_date||'')}${item.grade ? ' · '+esc(item.grade) : ''}</div></div>${actions}</div>${item.description ? `<p style="font-size:.88rem;color:#475569">${esc(item.description)}</p>` : ''}${item.url ? `<a href="${esc(item.url)}" target="_blank" style="font-size:.82rem;color:#2563eb">View thesis ↗</a>` : ''}</div>`;
     case 'certifications': return `<div class="card"><div class="card-header"><div><div class="card-title">${esc(item.name)}</div><div class="card-subtitle">${esc(item.issuer||'')}${item.date ? ' · '+fmtDate(item.date) : ''}</div></div>${actions}</div>${item.url ? `<a href="${esc(item.url)}" target="_blank" style="font-size:.82rem;color:#2563eb">View credential ↗</a>` : ''}</div>`;
     case 'skills':     return `<div class="card"><div class="card-header"><div class="card-title">${esc(item.category)}</div>${actions}</div><div class="tags-container">${(item.items||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div></div>`;
     case 'languages':  return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><div><span class="card-title">${esc(item.language)}</span><span class="text-muted" style="margin-left:.75rem">${esc(item.level)}</span></div>${actions}</div>`;
@@ -862,12 +863,13 @@ function openEduModal(id=null) {
   document.getElementById('edu-start').value       = item?.start_date || '';
   document.getElementById('edu-end').value         = item?.end_date || '';
   document.getElementById('edu-grade').value       = item?.grade || '';
+  document.getElementById('edu-url').value         = item?.url || '';
   document.getElementById('edu-description').value = item?.description || '';
   openModal('edu-modal');
 }
 function saveEdu() {
   const id = document.getElementById('edu-id').value || uid();
-  upsert('education', { id, institution:document.getElementById('edu-institution').value.trim(), degree:document.getElementById('edu-degree').value.trim(), field:document.getElementById('edu-field').value.trim(), start_date:document.getElementById('edu-start').value, end_date:document.getElementById('edu-end').value, grade:document.getElementById('edu-grade').value.trim(), description:document.getElementById('edu-description').value.trim() });
+  upsert('education', { id, institution:document.getElementById('edu-institution').value.trim(), degree:document.getElementById('edu-degree').value.trim(), field:document.getElementById('edu-field').value.trim(), start_date:document.getElementById('edu-start').value, end_date:document.getElementById('edu-end').value, grade:document.getElementById('edu-grade').value.trim(), url:document.getElementById('edu-url').value.trim(), description:document.getElementById('edu-description').value.trim() });
   closeModal('edu-modal'); toast('Education saved');
 }
 
