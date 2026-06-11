@@ -1,6 +1,7 @@
 # Personal CV data — never commit real data
 data/cv.json
 static/uploads/
+results/
 
 # Python
 venv/

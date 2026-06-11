@@ -69,8 +69,9 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e29
     {% if cv.personal.email %}<div class="l-line">{{ cv.personal.email }}</div>{% endif %}
     {% if cv.personal.phone %}<div class="l-line">{{ cv.personal.phone }}</div>{% endif %}
     {% if cv.personal.location %}<div class="l-line">{{ cv.personal.location }}</div>{% endif %}
-    {% if cv.personal.linkedin %}<div class="l-line">{{ cv.personal.linkedin }}</div>{% endif %}
+    {% if cv.personal.linkedin %}<div class="l-line" style="margin-top:.5rem">{{ cv.personal.linkedin }}</div>{% endif %}
     {% if cv.personal.github %}<div class="l-line">{{ cv.personal.github }}</div>{% endif %}
+    {% if cv.personal.website %}<div class="l-line">{{ cv.personal.website }}</div>{% endif %}
   </div>
 
   <!-- Skills -->
@@ -129,7 +130,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e29
 
   <!-- Education -->
   {% if cv.education %}
-  <div class="section" style="break-before: page; page-break-before: always;">
+  <div class="section" style="break-before: page; page-break-before: always; padding-top: 1cm;">
     <div class="sec-title">Education</div>
     {% for e in cv.education %}
     <div class="entry">
@@ -151,7 +152,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e29
     <div class="two-col">
     {% for c in cv.certifications %}
     <div class="entry" style="margin-bottom:.4rem">
-      <div style="font-weight:600;font-size:9pt">{{ c.name }}</div>
+      <div style="font-weight:600;font-size:9pt">{% if c.url %}<a href="{{ c.url }}" style="color:inherit;text-decoration:none">{{ c.name }}</a>{% else %}{{ c.name }}{% endif %}</div>
       {% if c.issuer %}<div style="font-size:8.5pt;color:#64748b">{{ c.issuer }}{% if c.date %} · {{ c.date | replace('-','/') }}{% endif %}</div>{% endif %}
     </div>
     {% endfor %}

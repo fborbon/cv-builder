@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, HTMLResponse
 from jinja2 import Environment, FileSystemLoader
-import json, base64, tempfile, re, time, os
+import json, base64, tempfile, re, time, os, hashlib
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -82,12 +82,9 @@ async def preview_cv(template_name: str):
     if template_name not in TEMPLATES:
         raise HTTPException(404, "Template not found")
     cv = load_cv()
-    # For browser preview the server can serve static files directly;
-    # pass photo as a regular URL so the iframe can load it without base64 bloat.
-    photo_url = (cv.get("personal") or {}).get("photo") or None
-    html = pdf_env.get_template(f"{template_name}.html").render(
-        cv=cv, photo_b64=photo_url
-    )
+    # Render through the same page-fitting pipeline as the PDF download so the
+    # live preview is a true WYSIWYG of the generated file.
+    html = _render_fitted(template_name, cv)
     return HTMLResponse(content=html)
 
 
@@ -198,16 +195,35 @@ def _fit_to_pages(html: str, target: int) -> str:
         return _clamp_page_margins(_scale_css(html, hi))
 
 
+_FIT_CACHE: dict[str, tuple[str, str]] = {}
+
+
+def _render_fitted(template_name: str, cv: dict) -> str:
+    """Render + page-fit a CV template, caching by content hash so the live
+    preview and the PDF download always produce identical, scaled HTML."""
+    photo_b64 = get_photo_b64(cv)
+    html = pdf_env.get_template(f"{template_name}.html").render(cv=cv, photo_b64=photo_b64)
+    tpl_mtime = (BASE_DIR / "templates" / "pdf" / f"{template_name}.html").stat().st_mtime
+    cv_hash = hashlib.sha256(
+        (json.dumps(cv, sort_keys=True) + (photo_b64 or "") + str(tpl_mtime)).encode()
+    ).hexdigest()
+
+    cached = _FIT_CACHE.get(template_name)
+    if cached and cached[0] == cv_hash:
+        return cached[1]
+
+    fitted = _fit_to_pages(html, 2)
+    _FIT_CACHE[template_name] = (cv_hash, fitted)
+    return fitted
+
+
 @app.get("/api/generate/{template_name}")
 async def generate_pdf(template_name: str):
     if template_name not in TEMPLATES:
         raise HTTPException(404, "Template not found")
 
     cv = load_cv()
-    html = pdf_env.get_template(f"{template_name}.html").render(
-        cv=cv, photo_b64=get_photo_b64(cv)
-    )
-    html = _fit_to_pages(html, 2)
+    html = _render_fitted(template_name, cv)
 
     from weasyprint import HTML
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
@@ -413,7 +429,7 @@ _CLOSING_PHRASES = (
 )
 
 
-def _strip_redundant_salutation_and_closing(body_text: str, name: str, title: str) -> str:
+def _strip_redundant_salutation_and_closing(body_text: str) -> str:
     """The letter template renders its own 'Dear X,' salutation and closing
     signature block, so strip them from the generated body text if present
     to avoid duplication."""
@@ -422,17 +438,14 @@ def _strip_redundant_salutation_and_closing(body_text: str, name: str, title: st
     # Leading "Dear X," / "Estimado/a X," greeting line.
     text = re.sub(r"^\s*(Dear|Estimad[oa](?:/a)?)\s+[^\n,]*,\s*\n+", "", text, flags=re.IGNORECASE)
 
-    # Trailing closing block: one or more "Sincerely,"/"Yours sincerely," etc.
-    # lines (the AI sometimes emits more than one), optionally followed by
-    # "Name\nTitle".
-    phrase = rf"\n+{_CLOSING_PHRASES},?\s*"
-    name_title = ""
-    if name:
-        name_title = r"\n+" + re.escape(name) + r"\s*"
-        if title:
-            name_title += rf"(\n+{re.escape(title)}\s*)?"
-    text = re.sub(rf"(?:{phrase})+{name_title}$", "", text, flags=re.IGNORECASE)
-    text = re.sub(rf"(?:{phrase})+$", "", text, flags=re.IGNORECASE)
+    # Trailing closing block: everything from the first standalone
+    # "Sincerely,"/"Yours sincerely," etc. line onward (the closing phrase
+    # plus whatever signature follows - name, title, possibly formatted
+    # differently than cv.json) is dropped, since the template renders its
+    # own closing + signature.
+    m = re.search(rf"\n\s*{_CLOSING_PHRASES}\s*,?\s*(\n|$)", text, flags=re.IGNORECASE)
+    if m:
+        text = text[:m.start()]
 
     return text.strip()
 
@@ -443,16 +456,18 @@ async def generate_letter_pdf(request: Request):
     cv        = load_cv()
     personal  = cv.get("personal", {})
 
-    body_text = _strip_redundant_salutation_and_closing(
-        data.get("body_text", ""), personal.get("name", ""), personal.get("title", ""),
-    )
+    body_text = _strip_redundant_salutation_and_closing(data.get("body_text", ""))
+
+    impersonal = bool(data.get("impersonal"))
+    recipient  = "Hiring Manager" if impersonal else data.get("recipient", "Hiring Manager")
+    company    = "" if impersonal else data.get("company", "")
 
     html = pdf_env.get_template("letter.html").render(
         personal  = personal,
         photo_b64 = get_photo_b64(cv),
-        company   = data.get("company", ""),
+        company   = company,
         position  = data.get("position", ""),
-        recipient = data.get("recipient", "Hiring Manager"),
+        recipient = recipient,
         body_text = body_text,
         date_str  = data.get("date_str", ""),
     )
@@ -485,17 +500,19 @@ async def polish_letter(request: Request):
         )
 
     data     = await request.json()
-    cv       = load_cv()
-    personal = cv.get("personal", {})
-    lang     = data.get("lang", "en")
-    applying = data.get("applying", {})
-    pastJobs = data.get("pastJobs", [])
+    cv         = load_cv()
+    personal   = cv.get("personal", {})
+    lang       = data.get("lang", "en")
+    applying   = data.get("applying", {})
+    pastJobs   = data.get("pastJobs", [])
+    impersonal = bool(data.get("impersonal"))
 
     lines = []
     lines.append(f"Candidate name: {personal.get('name', '')}")
     if personal.get("title"):
         lines.append(f"Candidate current title: {personal['title']}")
-    lines.append(f"Target company: {applying.get('company') or '[Company]'}")
+    if not impersonal:
+        lines.append(f"Target company: {applying.get('company') or '[Company]'}")
     lines.append(f"Target position: {applying.get('position') or '[Position]'}")
     if applying.get("why"):
         lines.append(f"Why interested in this company (raw notes): {applying['why']}")
@@ -519,6 +536,13 @@ async def polish_letter(request: Request):
     notes_block = "\n".join(lines)
     lang_name = "Spanish" if lang == "es" else "English"
 
+    impersonal_instructions = """
+This letter must be IMPERSONAL/GENERIC so the candidate can reuse it for several different
+companies without editing: do NOT name or refer to any specific company, and do NOT imply
+a specific recipient beyond "Hiring Manager". Refer to the employer generically (e.g. "your
+organization", "your team") and avoid phrases that only make sense for one particular company.
+""" if impersonal else ""
+
     prompt = f"""You are an expert career coach writing a cover letter on behalf of a candidate.
 Below are itemized notes the candidate wrote quickly, possibly with spelling or grammar mistakes.
 Use them as the factual basis for the letter, but rewrite everything in your own polished, professional words —
@@ -529,7 +553,7 @@ in a confident, professional but natural tone. Structure it as: an opening parag
 interest, one or more body paragraphs weaving in the past-role achievements and skills, a paragraph on why
 this company and what unique value the candidate brings, and a closing paragraph with a call to action.
 Sign off with the candidate's name (and title if relevant).
-
+{impersonal_instructions}
 Output ONLY the letter text, with no preamble, explanation, or markdown formatting.
 
 NOTES:

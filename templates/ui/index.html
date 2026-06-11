@@ -218,92 +218,76 @@
 <!-- ═══ COVER LETTER TAB ════════════════════════════ -->
 <div class="tab-pane" id="pane-letter">
   <div class="letter-container">
-    <div class="letter-subtabs">
-      <button class="letter-subtab active" data-ltab="quick">Quick Draft</button>
-      <button class="letter-subtab" data-ltab="interactive">Interactive</button>
-    </div>
+    <div class="letter-grid">
 
-    <!-- Quick Draft -->
-    <div class="letter-pane active" id="ltab-quick">
-      <div class="letter-grid">
-        <div class="letter-meta-card">
-          <div class="form-group"><label>Target Company</label>
-            <input type="text" id="letter-company" placeholder="e.g. Google"></div>
-          <div class="form-group"><label>Position / Role</label>
-            <input type="text" id="letter-position" placeholder="e.g. Senior Data Scientist"></div>
-          <div class="form-group"><label>Recipient</label>
-            <input type="text" id="letter-recipient" placeholder="Hiring Manager"></div>
-          <div class="form-group"><label>Language</label>
-            <select id="letter-lang">
-              <option value="en">English</option>
-              <option value="es">Spanish</option>
-            </select>
-          </div>
-          <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">
-            <button class="btn btn-success" onclick="generateQuickDraft()">↺ Auto-generate from CV</button>
-            <button class="btn btn-ghost" onclick="clearLetterText()">Clear</button>
+      <!-- Shared target / recipient / language -->
+      <div class="letter-meta-card">
+        <div class="form-group"><label>Target Company</label>
+          <input type="text" id="letter-company" placeholder="e.g. Google"></div>
+        <div class="form-group"><label>Position / Role</label>
+          <input type="text" id="letter-position" placeholder="e.g. Senior Data Scientist"></div>
+        <div class="form-group"><label>Recipient</label>
+          <input type="text" id="letter-recipient" placeholder="Hiring Manager"></div>
+        <div class="form-group"><label>Language</label>
+          <select id="letter-lang">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+          </select>
+        </div>
+        <div class="form-group form-check">
+          <label><input type="checkbox" id="letter-impersonal"> Impersonal</label>
+          <div class="text-muted" style="font-size:.8rem;margin-top:.2rem">
+            Don't address a specific company or recipient, so the same letter can be reused for several applications.
           </div>
         </div>
-        <div class="letter-editor">
-          <textarea id="letter-text" placeholder="Click 'Auto-generate from CV' to create a first draft, then edit freely."></textarea>
+      </div>
+
+      <!-- Past Jobs / Applying Job -->
+      <div class="letter-main">
+        <div class="int-subtabs">
+          <button class="int-subtab active" data-itab="past-jobs">Past Jobs</button>
+          <button class="int-subtab" data-itab="applying-job">Applying Job</button>
         </div>
-      </div>
-    </div>
 
-    <!-- Interactive -->
-    <div class="letter-pane" id="ltab-interactive">
-
-      <!-- Inner sub-tabs -->
-      <div class="int-subtabs">
-        <button class="int-subtab active" data-itab="past-jobs">Past Jobs</button>
-        <button class="int-subtab" data-itab="applying-job">Applying Job</button>
-      </div>
-
-      <!-- Past Jobs panel -->
-      <div class="int-pane active" id="itab-past-jobs">
-        <p class="text-muted" style="margin-bottom:1.1rem">
-          Answer the questions for each of your past roles. Your answers will be woven into the cover letter to show concrete impact.
-        </p>
-        <div id="past-jobs-qa">
-          <!-- dynamically filled from cv.experience -->
+        <!-- Past Jobs panel -->
+        <div class="int-pane active" id="itab-past-jobs">
+          <p class="text-muted" style="margin-bottom:1.1rem">
+            Answer the questions for each of your past roles. Your answers will be woven into the cover letter to show concrete impact.
+          </p>
+          <div id="past-jobs-qa">
+            <!-- dynamically filled from cv.experience -->
+          </div>
         </div>
-      </div>
 
-      <!-- Applying Job panel -->
-      <div class="int-pane" id="itab-applying-job">
-        <div class="qa-list">
-          <div class="qa-item">
-            <div class="qa-label">1 · Target company and role</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
-              <input type="text" id="qa-company" placeholder="Company name">
-              <input type="text" id="qa-position" placeholder="Role / Position">
+        <!-- Applying Job panel -->
+        <div class="int-pane" id="itab-applying-job">
+          <div class="qa-list">
+            <div class="qa-item">
+              <div class="qa-label">1 · Why are you specifically interested in this company?</div>
+              <textarea id="qa-why" rows="3" placeholder="Products, mission, market position, growth…"></textarea>
+            </div>
+            <div class="qa-item">
+              <div class="qa-label">2 · What is your standout achievement for this position?</div>
+              <textarea id="qa-achievement" rows="3" placeholder="A specific project, metric, or result that proves your impact…"></textarea>
+            </div>
+            <div class="qa-item">
+              <div class="qa-label">3 · What unique value do you bring that others might not?</div>
+              <textarea id="qa-unique" rows="3" placeholder="Your combination of skills, domain expertise, or perspective…"></textarea>
             </div>
           </div>
-          <div class="qa-item">
-            <div class="qa-label">2 · Why are you specifically interested in this company?</div>
-            <textarea id="qa-why" rows="3" placeholder="Products, mission, market position, growth…"></textarea>
-          </div>
-          <div class="qa-item">
-            <div class="qa-label">3 · What is your standout achievement for this position?</div>
-            <textarea id="qa-achievement" rows="3" placeholder="A specific project, metric, or result that proves your impact…"></textarea>
-          </div>
-          <div class="qa-item">
-            <div class="qa-label">4 · What unique value do you bring that others might not?</div>
-            <textarea id="qa-unique" rows="3" placeholder="Your combination of skills, domain expertise, or perspective…"></textarea>
-          </div>
         </div>
-      </div>
 
-      <button class="btn btn-success" id="btn-generate-interactive" style="margin-top:1.2rem" onclick="generateInteractiveLetter()">
-        Generate Letter from All Answers
-      </button>
+        <button class="btn btn-success" id="btn-generate-interactive" style="margin-top:1.2rem" onclick="generateInteractiveLetter()">
+          Generate Letter from All Answers
+        </button>
 
-      <div class="qa-result" id="qa-result" style="display:none;margin-top:1.5rem">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
-          <strong>Generated letter — edit freely before downloading</strong>
-          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qa-result').style.display='none'">Hide</button>
+        <div class="qa-result" id="qa-result" style="display:none;margin-top:1.5rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+            <strong>Generated letter — edit freely before downloading</strong>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('qa-result').style.display='none'">Hide</button>
+          </div>
+          <textarea id="interactive-letter-text"></textarea>
         </div>
-        <textarea id="interactive-letter-text"></textarea>
       </div>
     </div>
   </div>
@@ -1036,12 +1020,14 @@ function adjustPageBreaks(doc) {
   // Note: browsers drop the legacy "page-break-before" alias once an element's
   // style is rewritten via JS, keeping only "break-before" — match on that.
   doc.querySelectorAll('[style*="break-before"]').forEach(el => {
+    // Templates may set their own top padding (e.g. 1cm page-2 top margin) —
+    // preserve that on top of whatever's needed to reach the page boundary.
+    const extra = parseFloat(getComputedStyle(el).paddingTop) || 0;
     el.style.paddingTop = '0px';
     const top = el.getBoundingClientRect().top;
-    if (top < A4_H) {
-      // Padding (not margin) avoids margin-collapsing, so the full gap is applied.
-      el.style.paddingTop = (A4_H - top) + 'px';
-    }
+    // Padding (not margin) avoids margin-collapsing, so the full gap is applied.
+    const pad = Math.max(0, A4_H - top) + extra;
+    if (pad > 0) el.style.paddingTop = pad + 'px';
   });
 }
 
@@ -1136,18 +1122,55 @@ function openPreviewTab() {
   window.open(`/preview/${previewTpl}`, '_blank');
 }
 
+// ── Pick a save location BEFORE generating the PDF. showSaveFilePicker
+// requires fresh "transient activation" from the click; if it's called only
+// after an `await fetch(...)`, the activation has expired by then and the
+// picker silently fails (falling back to a plain download with no dialog).
+// Call this first, synchronously within the click handler.
+// Returns { handle, cancelled }: handle is null if unsupported or it failed
+// for a non-cancel reason (use the legacy download in that case).
+async function pickSaveTarget(suggestedName) {
+  if (!window.showSaveFilePicker) return { handle: null, cancelled: false };
+  try {
+    const handle = await window.showSaveFilePicker({
+      suggestedName,
+      types: [{ description: 'PDF document', accept: { 'application/pdf': ['.pdf'] } }],
+    });
+    return { handle, cancelled: false };
+  } catch (e) {
+    return { handle: null, cancelled: e.name === 'AbortError' };
+  }
+}
+
+// ── Write a Blob to a previously-picked file handle, or fall back to a
+// regular browser download if no handle was obtained.
+async function writeBlob(blob, suggestedName, handle) {
+  if (handle) {
+    const writable = await handle.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = suggestedName;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 // ── Download PDF (always 2 pages) ────────────────────
 async function generateFromPreview() {
   const btn = document.getElementById('download-pdf-btn');
+  const suggestedName = `cv_${previewTpl}_${PAGES}p.pdf`;
+  const { handle, cancelled } = await pickSaveTarget(suggestedName);
+  if (cancelled) return;
+
   btn.textContent = '⏳ Generating…'; btn.disabled = true;
   try {
     const res = await fetch(`/api/generate/${previewTpl}`);
     if (!res.ok) throw new Error('PDF generation failed');
     const blob = await res.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `cv_${previewTpl}_${PAGES}p.pdf`;
-    a.click();
+    await writeBlob(blob, suggestedName, handle);
     toast(`PDF (${PAGES}-page) downloaded!`);
   } catch(e) { toast(e.message, true); }
   finally { btn.textContent = '⬇ Download PDF'; btn.disabled = false; }
@@ -1177,19 +1200,7 @@ document.querySelectorAll('.section-tab').forEach(btn => {
   });
 });
 
-// ─── Letter sub-tab switching ────────────────────────
-document.querySelectorAll('.letter-subtab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.letter-subtab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.letter-pane').forEach(p => p.classList.remove('active'));
-    const pane = document.getElementById(`ltab-${btn.dataset.ltab}`);
-    if (pane) pane.classList.add('active');
-    if (btn.dataset.ltab === 'interactive') { renderPastJobsQA(); syncApplyingFromQuick(); }
-  });
-});
-
-// ─── Interactive: inner sub-tabs (Past Jobs / Applying Job) ──
+// ─── Letter sub-tabs (Past Jobs / Applying Job) ──────
 document.querySelectorAll('.int-subtab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.int-subtab').forEach(b => b.classList.remove('active'));
@@ -1198,7 +1209,6 @@ document.querySelectorAll('.int-subtab').forEach(btn => {
     const pane = document.getElementById(`itab-${btn.dataset.itab}`);
     if (pane) pane.classList.add('active');
     if (btn.dataset.itab === 'past-jobs') renderPastJobsQA();
-    if (btn.dataset.itab === 'applying-job') syncApplyingFromQuick();
   });
 });
 
@@ -1221,49 +1231,38 @@ function bindCoverLetterField(el, store, key) {
   el.onchange = handler;
 }
 
-// Pre-fill the Interactive tab's company/position from the Quick Draft tab
-// so the user doesn't have to enter them twice. Only fills empty fields.
-function syncApplyingFromQuick() {
-  const cl = ensureCoverLetterState();
-  [['letter-company', 'qa-company', 'company'], ['letter-position', 'qa-position', 'position']]
-    .forEach(([quickId, qaId, key]) => {
-      const quickVal = cl.quick[key] || document.getElementById(quickId)?.value || '';
-      const el = document.getElementById(qaId);
-      if (el && !el.value && quickVal) {
-        el.value = quickVal;
-        cl.interactive[key] = quickVal;
-        persist();
-      }
-    });
+function bindCoverLetterCheckbox(el, store, key) {
+  if (!el) return;
+  el.onchange = () => { store[key] = el.checked; persist(); };
 }
 
 function initLetter() {
   const cl = ensureCoverLetterState();
 
-  // Quick Draft fields — restore saved values, then bind for autosave.
-  const quickFields = {
+  // Shared target/recipient/language fields — restore saved values, then bind for autosave.
+  const metaFields = {
     'letter-company':   'company',
     'letter-position':  'position',
     'letter-recipient': 'recipient',
     'letter-lang':      'lang',
-    'letter-text':      'text',
   };
-  Object.entries(quickFields).forEach(([id, key]) => {
+  Object.entries(metaFields).forEach(([id, key]) => {
     const el = document.getElementById(id);
     if (!el) return;
     if (cl.quick[key]) el.value = cl.quick[key];
     bindCoverLetterField(el, cl.quick, key);
   });
 
-  const ta = document.getElementById('letter-text');
-  if (ta && !ta.value.trim()) generateQuickDraft();
+  const impersonalEl = document.getElementById('letter-impersonal');
+  if (impersonalEl) {
+    impersonalEl.checked = !!cl.quick.impersonal;
+    bindCoverLetterCheckbox(impersonalEl, cl.quick, 'impersonal');
+  }
 
   renderPastJobsQA();
 
   // Applying-Job fields — restore saved values, then bind for autosave.
   const applyingFields = {
-    'qa-company':     'company',
-    'qa-position':    'position',
     'qa-why':         'why',
     'qa-achievement': 'achievement',
     'qa-unique':      'unique',
@@ -1274,7 +1273,6 @@ function initLetter() {
     if (cl.interactive[key]) el.value = cl.interactive[key];
     bindCoverLetterField(el, cl.interactive, key);
   });
-  syncApplyingFromQuick();
 
   const intTa = document.getElementById('interactive-letter-text');
   if (intTa) {
@@ -1284,12 +1282,6 @@ function initLetter() {
     }
     bindCoverLetterField(intTa, cl.interactive, 'generatedText');
   }
-}
-
-function clearLetterText() {
-  document.getElementById('letter-text').value = '';
-  ensureCoverLetterState().quick.text = '';
-  persist();
 }
 
 function renderPastJobsQA() {
@@ -1341,69 +1333,7 @@ function renderPastJobsQA() {
   });
 }
 
-function generateQuickDraft() {
-  const p     = cv.personal || {};
-  const exps  = cv.experience || [];
-  const allSk = (cv.skills || []).flatMap(s => s['items'] || []);
-  const topSk = allSk.slice(0, 5).join(', ');
-
-  const company   = document.getElementById('letter-company').value.trim()   || '[Company]';
-  const position  = document.getElementById('letter-position').value.trim()  || '[Position]';
-  const recipient = document.getElementById('letter-recipient').value.trim() || 'Hiring Manager';
-  const lang      = document.getElementById('letter-lang').value;
-  const today     = new Date().toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-GB',
-                      { day: 'numeric', month: 'long', year: 'numeric' });
-
-  const firstYear  = exps.length ? parseInt((exps[exps.length-1].start_date||'2010').split('-')[0]) : 2010;
-  const yearsExp   = new Date().getFullYear() - firstYear;
-  const compList   = exps.slice(0, 3).map(e => e.company).filter(Boolean).join(', ');
-  const latestExp  = exps[0] || {};
-  const desc1      = (latestExp.description || '').split('.')[0];
-
-  let text;
-  if (lang === 'es') {
-    text =
-`Estimado/a ${recipient},
-
-Me dirijo a usted para expresar mi interés en el puesto de ${position} en ${company}. Con más de ${yearsExp} años de experiencia en ${p.title || 'análisis de datos e ingeniería'}, estoy seguro de poder aportar un valor real y medible a su equipo.
-
-A lo largo de mi carrera en organizaciones como ${compList}, he desarrollado una sólida experiencia en ${topSk}. En mi rol más reciente como ${latestExp.position || p.title || ''} en ${latestExp.company || ''}, ${desc1.charAt(0).toLowerCase() + desc1.slice(1)}.
-
-Lo que más me atrae de ${company} es la oportunidad de aplicar mis capacidades técnicas y analíticas para resolver retos reales de negocio. Me caracterizo por traducir análisis complejos en decisiones accionables, aportando visión tanto técnica como estratégica.
-
-Estaré encantado de ampliar esta información en una entrevista. Puede contactarme en ${p.email || ''} o en el ${p.phone || ''}.
-
-Muchas gracias por considerar mi candidatura.
-
-Atentamente,
-
-${p.name || ''}
-${p.title || ''}`;
-  } else {
-    text =
-`Dear ${recipient},
-
-I am writing to express my strong interest in the ${position} position at ${company}. With over ${yearsExp} years of experience in ${p.title || 'data science and analytics'}, I am confident in my ability to deliver meaningful and measurable impact to your team.
-
-Throughout my career at organisations including ${compList}, I have built deep expertise in ${topSk}. In my most recent role as ${latestExp.position || p.title || ''} at ${latestExp.company || ''}, ${desc1.charAt(0).toLowerCase() + desc1.slice(1)}.
-
-What particularly draws me to ${company} is the opportunity to apply rigorous analytical thinking directly to real business challenges. I excel at bridging the gap between complex data capabilities and practical, actionable outcomes — communicating insight clearly to both technical and non-technical stakeholders.
-
-I would welcome the opportunity to discuss how my background and skills align with your needs. I am available at your convenience and can be reached at ${p.email || ''} or ${p.phone || ''}.
-
-Thank you for considering my application.
-
-Yours sincerely,
-
-${p.name || ''}
-${p.title || ''}`;
-  }
-  document.getElementById('letter-text').value = text;
-  ensureCoverLetterState().quick.text = text;
-  persist();
-}
-
-function buildInteractiveLetterLocal(applying, pastJobs) {
+function buildInteractiveLetterLocal(applying, pastJobs, impersonal) {
   const p = cv.personal || {};
   const { company, position, why, achievement, unique } = applying;
 
@@ -1431,12 +1361,19 @@ function buildInteractiveLetterLocal(applying, pastJobs) {
 
   const pastSection = pastParas.length ? pastParas.join('\n\n') : '';
 
+  const opening = impersonal
+    ? `I am writing to apply for the ${position || '[Position]'} position. ${why}`.trim()
+    : `I am writing to apply for the ${position || '[Position]'} position at ${company || '[Company]'}. ${why}`.trim();
+  const closing = impersonal
+    ? 'I look forward to discussing how I can contribute to your team.'
+    : `I look forward to discussing how I can contribute to ${company || '[Company]'}.`;
+
   const paragraphs = [
-    `I am writing to apply for the ${position || '[Position]'} position at ${company || '[Company]'}. ${why}`.trim(),
+    opening,
     pastSection,
     achievement ? `A particularly strong example of my impact: ${achievement}` : '',
     unique  ? unique : '',
-    `I look forward to discussing how I can contribute to ${company || '[Company]'}.`,
+    closing,
   ].filter(Boolean);
 
   return `Dear Hiring Manager,\n\n${paragraphs.join('\n\n')}\n\nYours sincerely,\n\n${p.name || ''}\n${p.title || ''}`;
@@ -1445,10 +1382,12 @@ function buildInteractiveLetterLocal(applying, pastJobs) {
 async function generateInteractiveLetter() {
   const exps = cv.experience || [];
 
+  const impersonal = !!document.getElementById('letter-impersonal')?.checked;
+
   // ── Applying-job answers ──────────────────────────
   const applying = {
-    company:     (document.getElementById('qa-company')?.value   || '').trim(),
-    position:    (document.getElementById('qa-position')?.value  || '').trim(),
+    company:     (document.getElementById('letter-company')?.value  || '').trim(),
+    position:    (document.getElementById('letter-position')?.value || '').trim(),
     why:         (document.getElementById('qa-why')?.value       || '').trim(),
     achievement: (document.getElementById('qa-achievement')?.value || '').trim(),
     unique:      (document.getElementById('qa-unique')?.value    || '').trim(),
@@ -1476,7 +1415,7 @@ async function generateInteractiveLetter() {
     const res = await fetch('/api/polish-letter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lang, applying, pastJobs }),
+      body: JSON.stringify({ lang, applying, pastJobs, impersonal }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -1485,7 +1424,7 @@ async function generateInteractiveLetter() {
     const data = await res.json();
     text = data.letter;
   } catch (err) {
-    text = buildInteractiveLetterLocal(applying, pastJobs);
+    text = buildInteractiveLetterLocal(applying, pastJobs, impersonal);
     toast(`AI polishing unavailable, used basic draft (${err.message})`, true);
   } finally {
     genBtn.disabled = false;
@@ -1500,14 +1439,17 @@ async function generateInteractiveLetter() {
 }
 
 async function downloadLetterPDF() {
-  const isInteractive = document.querySelector('.letter-subtab.active')?.dataset.ltab === 'interactive';
-  const text = isInteractive
-    ? document.getElementById('interactive-letter-text').value
-    : document.getElementById('letter-text').value;
+  const text = document.getElementById('interactive-letter-text').value;
 
   if (!text.trim()) { toast('Generate a letter first', true); return; }
 
+  const impersonal = !!document.getElementById('letter-impersonal')?.checked;
   const btn = document.querySelector('#ctrl-letter button');
+
+  const suggestedName = 'cover_letter.pdf';
+  const { handle, cancelled } = await pickSaveTarget(suggestedName);
+  if (cancelled) return;
+
   btn.textContent = '⏳ Generating…'; btn.disabled = true;
 
   const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -1517,19 +1459,17 @@ async function downloadLetterPDF() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        company:   document.getElementById('letter-company')?.value  || '',
-        position:  document.getElementById('letter-position')?.value || '',
-        recipient: document.getElementById('letter-recipient')?.value || 'Hiring Manager',
-        body_text: text,
-        date_str:  today,
+        company:    impersonal ? '' : (document.getElementById('letter-company')?.value  || ''),
+        position:   document.getElementById('letter-position')?.value || '',
+        recipient:  document.getElementById('letter-recipient')?.value || 'Hiring Manager',
+        impersonal,
+        body_text:  text,
+        date_str:   today,
       }),
     });
     if (!res.ok) throw new Error('PDF generation failed');
     const blob = await res.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'cover_letter.pdf';
-    a.click();
+    await writeBlob(blob, suggestedName, handle);
     toast('Letter PDF downloaded!');
   } catch(e) { toast(e.message, true); }
   finally { btn.textContent = '⬇ Download Letter PDF'; btn.disabled = false; }

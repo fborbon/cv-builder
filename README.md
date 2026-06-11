@@ -39,6 +39,27 @@ PDF generation and live preview require the server to be running locally.
 | Templates | Jinja2 |
 | Frontend | Vanilla JS (no framework) |
 
+## CV photo pipeline
+
+The headshot used in the PDF templates was prepared from a casual phone photo
+using two standalone scripts (`make_professional_photos.py` and
+`make_suit_photos.py`). They aren't required to run the app, but document the
+tooling behind a "studio portrait" look:
+
+| Step | Technology | How it works |
+|---|---|---|
+| HEIC decoding | `pillow-heif` | Registers an HEIF/HEIC plugin for Pillow so iPhone `.heic` photos open like any other image format |
+| Head/shoulder cropping | OpenCV Haar cascade (`haarcascade_frontalface_default`) | A classical detector trained on many face/non-face image patches; it scans the photo at multiple scales to find the largest face, then expands that box outward into a 3:4 head-and-shoulders crop |
+| Background removal | `rembg` (U²-Net, `u2net_human_seg` model) | A deep neural network trained for person segmentation; it produces a per-pixel alpha mask separating the subject from the background, used to cut the subject out cleanly |
+| Studio backdrop | NumPy radial gradient | A procedural dark vignette (gray for B&W, blue-gray for color) is generated and the cutout subject is composited onto it, mimicking a photo-studio background |
+| Outfit replacement | AWS Bedrock — Stability AI "Stable Image Search & Replace" | A generative diffusion model: given a text prompt for what to find (e.g. "polo shirt") and what to put there instead (e.g. "dark business suit"), it inpaints a photorealistic replacement garment over that region |
+| Tone & sizing | Pillow (`ImageEnhance`, `Image.resize`) | Grayscale conversion plus contrast/brightness curves for the studio look, then Lanczos resampling to the 522×641 portrait size used across all templates |
+
+These scripts need extra dependencies not in `requirements.txt`
+(`opencv-python`, `rembg`, `pillow-heif`, `numpy`) and, for the
+outfit-replacement step, `boto3` with AWS credentials for Bedrock
+(`us-east-1`) — that step calls a billed Bedrock model per image.
+
 ## Data privacy
 
 `data/cv.json` and `static/uploads/` are excluded from version control via `.gitignore`.  

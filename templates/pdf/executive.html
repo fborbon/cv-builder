@@ -59,7 +59,8 @@ body { font-family: Georgia, 'Times New Roman', serif; font-size: 10.5pt; color:
       {% if cv.personal.email %}<span>✉ {{ cv.personal.email }}</span>{% endif %}
       {% if cv.personal.phone %}<span>✆ {{ cv.personal.phone }}</span>{% endif %}
       {% if cv.personal.location %}<span>⚲ {{ cv.personal.location }}</span>{% endif %}
-      {% if cv.personal.linkedin %}<span>in {{ cv.personal.linkedin }}</span>{% endif %}
+      {% if cv.personal.linkedin %}<span style="flex-basis:100%;height:.4rem"></span><span>in {{ cv.personal.linkedin }}</span>{% endif %}
+      {% if cv.personal.website %}<span>🌐 {{ cv.personal.website }}</span>{% endif %}
     </div>
   </div>
 </div>
@@ -124,7 +125,7 @@ body { font-family: Georgia, 'Times New Roman', serif; font-size: 10.5pt; color:
         <div class="sec-title">Certifications</div>
         {% for c in cv.certifications %}
         <div class="cert-item">
-          <strong>{{ c.name }}</strong>
+          <strong>{% if c.url %}<a href="{{ c.url }}" style="color:inherit;text-decoration:none">{{ c.name }}</a>{% else %}{{ c.name }}{% endif %}</strong>
           {% if c.issuer %}<span style="color:#666;font-size:9pt"> — {{ c.issuer }}{% if c.date %}, {{ c.date | replace('-','/') }}{% endif %}</span>{% endif %}
         </div>
         {% endfor %}
