@@ -6,8 +6,8 @@ A local web application for building, previewing, and exporting a professional C
 
 ## Features
 
-- **6 PDF templates** — Classic, Modern, Executive, Tech, Creative, Minimal
-- **Page fitting** — automatically scale content to exactly 1 or 2 pages
+- **4 PDF templates** — Modern, Executive, Tech / Developer, Creative
+- **Page fitting** — content is automatically scaled to fit exactly 2 pages, with Education and Certifications always pushed to page 2
 - **Cover Letter** — quick auto-draft from CV data, or guided interactive mode (past jobs + target role)
 - **Portfolio tab** — load any GitHub user's public repos with auto-generated 5-sentence summaries from READMEs
 - **Live preview** — in-browser A4 page preview with zoom controls

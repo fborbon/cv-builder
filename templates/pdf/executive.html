@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <style>
-@page { margin: 15mm 18mm; size: A4; }
+@page { margin: 20mm 18mm 15mm; size: A4; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: Georgia, 'Times New Roman', serif; font-size: 10.5pt; color: #1c1c1c; }
-/* Simulate @page margins in browser. The header's margin:-15mm -18mm cancels this so it still bleeds. */
-@media screen { body { padding: 15mm 18mm; } }
+/* Simulate @page margins in browser. The header's margin:-20mm -18mm cancels this so it still bleeds. */
+@media screen { body { padding: 20mm 18mm 15mm; } }
 
 /* Header */
-.header { background: #1c2b4a; color: #fff; padding: 10mm 12mm; display: flex; align-items: center; gap: 1rem; margin: -15mm -18mm 0; }
+.header { background: #1c2b4a; color: #fff; padding: 10mm 12mm; display: flex; align-items: center; gap: 1rem; margin: -20mm -18mm 0; }
 .photo { width: 80px; height: 80px; border-radius: 4px; object-fit: cover; border: 2px solid #c8a96e; flex-shrink: 0; }
 .header-body { flex: 1; }
 .name { font-size: 22pt; font-weight: bold; letter-spacing: 1px; color: #fff; }
@@ -30,7 +30,7 @@ body { font-family: Georgia, 'Times New Roman', serif; font-size: 10.5pt; color:
 
 .summary { font-size: 10pt; color: #333; line-height: 1.6; font-style: italic; }
 
-.entry { margin-bottom: .9rem; }
+.entry { margin-bottom: .9rem; break-inside: avoid; page-break-inside: avoid; }
 .row { display: flex; justify-content: space-between; align-items: baseline; }
 .entry-title { font-weight: bold; font-size: 11pt; color: #1c2b4a; }
 .entry-date  { font-size: 9pt; color: #777; }
@@ -90,7 +90,7 @@ body { font-family: Georgia, 'Times New Roman', serif; font-size: 10.5pt; color:
   {% endif %}
 
   {% if cv.education %}
-  <div class="section">
+  <div class="section" style="break-before: page; page-break-before: always;">
     <div class="sec-title">Education</div>
     {% for e in cv.education %}
     <div class="entry">

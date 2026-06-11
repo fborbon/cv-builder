@@ -205,16 +205,6 @@
         {% endfor %}
       </div>
 
-      <!-- Page mode row -->
-      <div class="page-mode-bar">
-        <div style="display:flex;align-items:center;gap:.5rem">
-          <span class="page-mode-label">Page limit:</span>
-          <button class="page-pill active" data-pages="1" onclick="setPageMode(1)">1 page</button>
-          <button class="page-pill" data-pages="2" onclick="setPageMode(2)">2 pages</button>
-        </div>
-        <span id="page-count-label" class="page-count-badge"></span>
-      </div>
-
       <!-- A4 canvas — pages injected dynamically by buildPagesView() -->
       <div class="preview-stage" id="preview-stage">
         <div class="preview-loading" id="preview-loading">Loading preview…</div>
@@ -251,7 +241,7 @@
           </div>
           <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">
             <button class="btn btn-success" onclick="generateQuickDraft()">↺ Auto-generate from CV</button>
-            <button class="btn btn-ghost" onclick="document.getElementById('letter-text').value=''">Clear</button>
+            <button class="btn btn-ghost" onclick="clearLetterText()">Clear</button>
           </div>
         </div>
         <div class="letter-editor">
@@ -304,7 +294,7 @@
         </div>
       </div>
 
-      <button class="btn btn-success" style="margin-top:1.2rem" onclick="generateInteractiveLetter()">
+      <button class="btn btn-success" id="btn-generate-interactive" style="margin-top:1.2rem" onclick="generateInteractiveLetter()">
         Generate Letter from All Answers
       </button>
 
@@ -1024,18 +1014,9 @@ function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
 // ─── PREVIEW ─────────────────────────────────────────
 const A4_W = 794, A4_H = 1123, PAGE_GAP = 20;  // px at 1× zoom
-let previewTpl  = 'classic';
+const PAGES = 2;  // CV PDFs are always fit to exactly 2 pages
+let previewTpl  = 'modern';
 let previewZoom = 0.75;
-let pageMode    = 1;   // 1=1 page  2=2 pages (no Auto — default is 1 page)
-
-// ── Page-mode controls ───────────────────────────────
-function setPageMode(n) {
-  pageMode = n;
-  document.querySelectorAll('.page-pill').forEach(b =>
-    b.classList.toggle('active', parseInt(b.dataset.pages) === n)
-  );
-  loadPreview(previewTpl);
-}
 
 // ── Template switch ──────────────────────────────────
 function loadPreview(tpl) {
@@ -1044,6 +1025,24 @@ function loadPreview(tpl) {
     b.classList.toggle('active', b.dataset.tpl === tpl)
   );
   buildPagesView();
+}
+
+// Forced PDF page breaks (page-break-before/break-before: page) only take effect
+// when WeasyPrint paginates the document — the live screen preview renders it as
+// one continuous flow. To make the preview match the PDF, push any element marked
+// with such a break down (via margin-top) so it visually starts at the next A4
+// page boundary in the natural-scale layout.
+function adjustPageBreaks(doc) {
+  // Note: browsers drop the legacy "page-break-before" alias once an element's
+  // style is rewritten via JS, keeping only "break-before" — match on that.
+  doc.querySelectorAll('[style*="break-before"]').forEach(el => {
+    el.style.paddingTop = '0px';
+    const top = el.getBoundingClientRect().top;
+    if (top < A4_H) {
+      // Padding (not margin) avoids margin-collapsing, so the full gap is applied.
+      el.style.paddingTop = (A4_H - top) + 'px';
+    }
+  });
 }
 
 // ── Core: measure → build N page-windows ─────────────
@@ -1063,7 +1062,10 @@ async function buildPagesView() {
     document.body.appendChild(probe);
     probe.onload = () => {
       let h = A4_H;
-      try { h = probe.contentDocument.documentElement.scrollHeight || A4_H; }
+      try {
+        adjustPageBreaks(probe.contentDocument);
+        h = probe.contentDocument.documentElement.scrollHeight || A4_H;
+      }
       catch(e) {}
       document.body.removeChild(probe);
       resolve(h);
@@ -1075,22 +1077,13 @@ async function buildPagesView() {
   // Subtract 80 px trailing buffer so CSS bottom-margins don't create a phantom empty page.
   const nPages = Math.max(1, Math.ceil((naturalH - 80) / A4_H));
 
-  // Badge — show natural count and a hint when PDF will expand or compress
-  const badge = document.getElementById('page-count-label');
-  let badgeText = `${nPages} page${nPages !== 1 ? 's' : ''} natural`;
-  if (pageMode > 0 && pageMode !== nPages) {
-    badgeText += pageMode > nPages ? ` → PDF expands to ${pageMode}` : ` → PDF compresses to ${pageMode}`;
-  }
-  badge.textContent = badgeText;
-  badge.style.display = 'inline';
-
-  // 2 – Build page windows (always natural scale; page-mode limits windows shown)
+  // 2 – Build page windows (always natural scale; capped to PAGES windows)
   stage.innerHTML = '';
   const col = document.createElement('div');
   col.id = 'pages-col';
   stage.appendChild(col);
 
-  const windowCount = Math.min(nPages, pageMode);  // always respect page limit
+  const windowCount = Math.min(nPages, PAGES);
 
   for (let i = 0; i < windowCount; i++) {
     if (i > 0) {
@@ -1108,10 +1101,12 @@ async function buildPagesView() {
 
     const frame = document.createElement('iframe');
     frame.className = 'page-frame';
+    frame.dataset.pageIndex = i;
     frame.style.cssText =
       `width:${A4_W}px;height:${naturalH}px;border:none;display:block;` +
       `transform:scale(${previewZoom});transform-origin:top left;` +
-      `margin-top:${-i * A4_H}px;`;
+      `margin-top:${-i * A4_H * previewZoom}px;`;
+    frame.onload = () => { try { adjustPageBreaks(frame.contentDocument); } catch(e) {} };
     frame.src = `/preview/${previewTpl}?t=${ts}`;
     win.appendChild(frame);
   }
@@ -1129,7 +1124,9 @@ function applyZoom() {
     w.style.height = Math.round(A4_H * previewZoom) + 'px';
   });
   document.querySelectorAll('.page-frame').forEach(f => {
+    const i = +f.dataset.pageIndex;
     f.style.transform = `scale(${previewZoom})`;
+    f.style.marginTop = `${-i * A4_H * previewZoom}px`;
   });
   document.getElementById('zoom-label').textContent =
     Math.round(previewZoom * 100) + '%';
@@ -1139,19 +1136,19 @@ function openPreviewTab() {
   window.open(`/preview/${previewTpl}`, '_blank');
 }
 
-// ── Download PDF (respects page mode) ────────────────
+// ── Download PDF (always 2 pages) ────────────────────
 async function generateFromPreview() {
   const btn = document.getElementById('download-pdf-btn');
   btn.textContent = '⏳ Generating…'; btn.disabled = true;
   try {
-    const res = await fetch(`/api/generate/${previewTpl}?pages=${pageMode}`);
+    const res = await fetch(`/api/generate/${previewTpl}`);
     if (!res.ok) throw new Error('PDF generation failed');
     const blob = await res.blob();
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `cv_${previewTpl}_${pageMode}p.pdf`;
+    a.download = `cv_${previewTpl}_${PAGES}p.pdf`;
     a.click();
-    toast(`PDF (${pageMode}-page) downloaded!`);
+    toast(`PDF (${PAGES}-page) downloaded!`);
   } catch(e) { toast(e.message, true); }
   finally { btn.textContent = '⬇ Download PDF'; btn.disabled = false; }
 }
@@ -1188,7 +1185,7 @@ document.querySelectorAll('.letter-subtab').forEach(btn => {
     document.querySelectorAll('.letter-pane').forEach(p => p.classList.remove('active'));
     const pane = document.getElementById(`ltab-${btn.dataset.ltab}`);
     if (pane) pane.classList.add('active');
-    if (btn.dataset.ltab === 'interactive') renderPastJobsQA();
+    if (btn.dataset.ltab === 'interactive') { renderPastJobsQA(); syncApplyingFromQuick(); }
   });
 });
 
@@ -1201,19 +1198,104 @@ document.querySelectorAll('.int-subtab').forEach(btn => {
     const pane = document.getElementById(`itab-${btn.dataset.itab}`);
     if (pane) pane.classList.add('active');
     if (btn.dataset.itab === 'past-jobs') renderPastJobsQA();
+    if (btn.dataset.itab === 'applying-job') syncApplyingFromQuick();
   });
 });
 
 // ─── Cover Letter ────────────────────────────────────
+// All cover-letter inputs are persisted in cv.coverLetter and saved via
+// the same /api/cv autosave used by the rest of the app.
+function ensureCoverLetterState() {
+  if (!cv.coverLetter || typeof cv.coverLetter !== 'object') cv.coverLetter = {};
+  const cl = cv.coverLetter;
+  if (!cl.quick || typeof cl.quick !== 'object') cl.quick = {};
+  if (!cl.interactive || typeof cl.interactive !== 'object') cl.interactive = {};
+  if (!Array.isArray(cl.interactive.pastJobs)) cl.interactive.pastJobs = [];
+  return cl;
+}
+
+function bindCoverLetterField(el, store, key) {
+  if (!el) return;
+  const handler = () => { store[key] = el.value; persist(); };
+  el.oninput = handler;
+  el.onchange = handler;
+}
+
+// Pre-fill the Interactive tab's company/position from the Quick Draft tab
+// so the user doesn't have to enter them twice. Only fills empty fields.
+function syncApplyingFromQuick() {
+  const cl = ensureCoverLetterState();
+  [['letter-company', 'qa-company', 'company'], ['letter-position', 'qa-position', 'position']]
+    .forEach(([quickId, qaId, key]) => {
+      const quickVal = cl.quick[key] || document.getElementById(quickId)?.value || '';
+      const el = document.getElementById(qaId);
+      if (el && !el.value && quickVal) {
+        el.value = quickVal;
+        cl.interactive[key] = quickVal;
+        persist();
+      }
+    });
+}
+
 function initLetter() {
+  const cl = ensureCoverLetterState();
+
+  // Quick Draft fields — restore saved values, then bind for autosave.
+  const quickFields = {
+    'letter-company':   'company',
+    'letter-position':  'position',
+    'letter-recipient': 'recipient',
+    'letter-lang':      'lang',
+    'letter-text':      'text',
+  };
+  Object.entries(quickFields).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (cl.quick[key]) el.value = cl.quick[key];
+    bindCoverLetterField(el, cl.quick, key);
+  });
+
   const ta = document.getElementById('letter-text');
   if (ta && !ta.value.trim()) generateQuickDraft();
+
   renderPastJobsQA();
+
+  // Applying-Job fields — restore saved values, then bind for autosave.
+  const applyingFields = {
+    'qa-company':     'company',
+    'qa-position':    'position',
+    'qa-why':         'why',
+    'qa-achievement': 'achievement',
+    'qa-unique':      'unique',
+  };
+  Object.entries(applyingFields).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (cl.interactive[key]) el.value = cl.interactive[key];
+    bindCoverLetterField(el, cl.interactive, key);
+  });
+  syncApplyingFromQuick();
+
+  const intTa = document.getElementById('interactive-letter-text');
+  if (intTa) {
+    if (cl.interactive.generatedText) {
+      intTa.value = cl.interactive.generatedText;
+      document.getElementById('qa-result').style.display = 'block';
+    }
+    bindCoverLetterField(intTa, cl.interactive, 'generatedText');
+  }
+}
+
+function clearLetterText() {
+  document.getElementById('letter-text').value = '';
+  ensureCoverLetterState().quick.text = '';
+  persist();
 }
 
 function renderPastJobsQA() {
   const container = document.getElementById('past-jobs-qa');
   if (!container) return;
+  const cl = ensureCoverLetterState();
   const exps = cv.experience || [];
   if (!exps.length) {
     container.innerHTML = '<p class="text-muted">No work experience found in your CV. Add experience entries first.</p>';
@@ -1242,6 +1324,21 @@ function renderPastJobsQA() {
       </div>
     </div>
   `).join('');
+
+  // Restore saved answers and bind autosave for each per-job field.
+  exps.slice(0, 6).forEach((e, i) => {
+    const saved = cl.interactive.pastJobs[i] || {};
+    ['impact', 'metric', 'skill'].forEach(key => {
+      const el = document.getElementById(`job-${i}-${key}`);
+      if (!el) return;
+      if (saved[key]) el.value = saved[key];
+      el.oninput = () => {
+        if (!cl.interactive.pastJobs[i]) cl.interactive.pastJobs[i] = {};
+        cl.interactive.pastJobs[i][key] = el.value;
+        persist();
+      };
+    });
+  });
 }
 
 function generateQuickDraft() {
@@ -1302,46 +1399,102 @@ ${p.name || ''}
 ${p.title || ''}`;
   }
   document.getElementById('letter-text').value = text;
+  ensureCoverLetterState().quick.text = text;
+  persist();
 }
 
-function generateInteractiveLetter() {
-  const p        = cv.personal || {};
-  const exps     = cv.experience || [];
+function buildInteractiveLetterLocal(applying, pastJobs) {
+  const p = cv.personal || {};
+  const { company, position, why, achievement, unique } = applying;
 
-  // ── Applying-job answers ──────────────────────────
-  const company  = (document.getElementById('qa-company')?.value   || '').trim() || '[Company]';
-  const position = (document.getElementById('qa-position')?.value  || '').trim() || '[Position]';
-  const why      = (document.getElementById('qa-why')?.value       || '').trim();
-  const achieve  = (document.getElementById('qa-achievement')?.value || '').trim();
-  const unique   = (document.getElementById('qa-unique')?.value    || '').trim();
+  const ensurePeriod = s => s.endsWith('.') ? s : s + '.';
 
-  // ── Past-jobs answers → one paragraph per role ───
-  const pastParas = exps.slice(0, 6).map((e, i) => {
-    const impact = (document.getElementById(`job-${i}-impact`)?.value || '').trim();
-    const metric = (document.getElementById(`job-${i}-metric`)?.value || '').trim();
-    const skill  = (document.getElementById(`job-${i}-skill`)?.value  || '').trim();
+  const pastParas = pastJobs.map(job => {
+    const { company: jc, impact, metric, skill } = job;
     if (!impact && !metric && !skill) return null;
     const parts = [];
-    if (impact)  parts.push(`At ${e.company}, ${impact.charAt(0).toLowerCase() + impact.slice(1)}.`);
-    if (metric)  parts.push(metric.endsWith('.') ? metric : metric + '.');
-    if (skill)   parts.push(`This experience deepened my expertise in ${skill}.`);
+    if (impact) {
+      const low = impact.toLowerCase();
+      parts.push(low.startsWith('at ') || low.includes(jc.toLowerCase())
+        ? ensurePeriod(impact)
+        : ensurePeriod(`At ${jc}, ${impact.charAt(0).toLowerCase() + impact.slice(1)}`));
+    }
+    if (metric)  parts.push(ensurePeriod(metric));
+    if (skill) {
+      const low = skill.toLowerCase();
+      parts.push(low.includes('experience') && low.includes('expertise')
+        ? ensurePeriod(skill)
+        : ensurePeriod(`This experience deepened my expertise in ${skill}`));
+    }
     return parts.join(' ');
   }).filter(Boolean);
 
   const pastSection = pastParas.length ? pastParas.join('\n\n') : '';
 
   const paragraphs = [
-    `I am writing to apply for the ${position} position at ${company}. ${why}`.trim(),
+    `I am writing to apply for the ${position || '[Position]'} position at ${company || '[Company]'}. ${why}`.trim(),
     pastSection,
-    achieve ? `A particularly strong example of my impact: ${achieve}` : '',
+    achievement ? `A particularly strong example of my impact: ${achievement}` : '',
     unique  ? unique : '',
-    `I look forward to discussing how I can contribute to ${company}.`,
+    `I look forward to discussing how I can contribute to ${company || '[Company]'}.`,
   ].filter(Boolean);
 
-  const text = `Dear Hiring Manager,\n\n${paragraphs.join('\n\n')}\n\nYours sincerely,\n\n${p.name || ''}\n${p.title || ''}`;
+  return `Dear Hiring Manager,\n\n${paragraphs.join('\n\n')}\n\nYours sincerely,\n\n${p.name || ''}\n${p.title || ''}`;
+}
+
+async function generateInteractiveLetter() {
+  const exps = cv.experience || [];
+
+  // ── Applying-job answers ──────────────────────────
+  const applying = {
+    company:     (document.getElementById('qa-company')?.value   || '').trim(),
+    position:    (document.getElementById('qa-position')?.value  || '').trim(),
+    why:         (document.getElementById('qa-why')?.value       || '').trim(),
+    achievement: (document.getElementById('qa-achievement')?.value || '').trim(),
+    unique:      (document.getElementById('qa-unique')?.value    || '').trim(),
+  };
+
+  // ── Past-jobs answers ─────────────────────────────
+  const pastJobs = exps.slice(0, 6).map((e, i) => ({
+    company:  e.company,
+    position: e.position,
+    impact: (document.getElementById(`job-${i}-impact`)?.value || '').trim(),
+    metric: (document.getElementById(`job-${i}-metric`)?.value || '').trim(),
+    skill:  (document.getElementById(`job-${i}-skill`)?.value  || '').trim(),
+  }));
+
+  const lang = document.getElementById('letter-lang')?.value || 'en';
 
   const resultEl = document.getElementById('qa-result');
+  const genBtn   = document.getElementById('btn-generate-interactive');
+  const origLabel = genBtn.textContent;
+  genBtn.disabled = true;
+  genBtn.textContent = '✨ Polishing with AI…';
+
+  let text;
+  try {
+    const res = await fetch('/api/polish-letter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang, applying, pastJobs }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    text = data.letter;
+  } catch (err) {
+    text = buildInteractiveLetterLocal(applying, pastJobs);
+    toast(`AI polishing unavailable, used basic draft (${err.message})`, true);
+  } finally {
+    genBtn.disabled = false;
+    genBtn.textContent = origLabel;
+  }
+
   document.getElementById('interactive-letter-text').value = text;
+  ensureCoverLetterState().interactive.generatedText = text;
+  persist();
   resultEl.style.display = 'block';
   resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -1461,7 +1614,7 @@ function repoCard(r, username) {
       `<span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block"></span>` +
       `${esc(r.language)}</span>`
     : '';
-  const techTags = r.topics.slice(0, 6).map(t => `<span class="repo-tech-tag">${esc(t)}</span>`).join('');
+  const techTags = r.topics.slice(0, 3).map(t => `<span class="repo-tech-tag">${esc(t)}</span>`).join('');
   const statsArr = [r.stars ? `⭐ ${r.stars}` : '', r.forks ? `🍴 ${r.forks}` : ''].filter(Boolean);
   const updated  = r.updated ? `Updated ${r.updated}` : '';
   const liveBtn  = r.homepage

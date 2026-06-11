@@ -264,28 +264,6 @@ textarea { resize: vertical; min-height: 90px; }
   text-align: center;
 }
 
-/* ── Page-mode bar ────────────────────────────────── */
-.page-mode-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
-  padding: .55rem .9rem; margin-bottom: .9rem;
-}
-.page-mode-label {
-  font-size: .82rem; font-weight: 600; color: #64748b;
-}
-.page-pill {
-  padding: .25rem .75rem; border-radius: 999px;
-  border: 1.5px solid #cbd5e1; background: #fff;
-  color: #64748b; font-size: .82rem; font-weight: 500;
-  cursor: pointer; transition: all .15s;
-}
-.page-pill:hover  { border-color: #3b82f6; color: #1e40af; }
-.page-pill.active { background: #1e40af; border-color: #1e40af; color: #fff; font-weight: 600; }
-.page-count-badge {
-  font-size: .78rem; color: #94a3b8; background: #f1f5f9;
-  padding: .2rem .6rem; border-radius: 999px; display: none;
-}
-
 /* ── Top-level tab navigation ─────────────────────── */
 .app-tabs {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
@@ -419,16 +397,16 @@ textarea { resize: vertical; min-height: 90px; }
 
 .repo-grid-lp {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: 1.4rem;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: .7rem;
 }
 
 .repo-card-lp {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
-  padding: 1.4rem;
-  display: flex; flex-direction: column; gap: .85rem;
+  padding: .55rem;
+  display: flex; flex-direction: column; gap: .3rem;
   box-shadow: 0 2px 8px rgba(0,0,0,.05);
   transition: transform .18s, box-shadow .18s;
 }
@@ -438,37 +416,37 @@ textarea { resize: vertical; min-height: 90px; }
 }
 
 .repo-card-lp-header {
-  display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: .35rem;
 }
 .repo-card-lp-name {
-  font-size: 1.05rem; font-weight: 700; color: #1e293b; text-decoration: none;
-  line-height: 1.3;
+  font-size: .85rem; font-weight: 700; color: #1e293b; text-decoration: none;
+  line-height: 1.25;
 }
 .repo-card-lp-name:hover { color: #1e40af; }
 
 .repo-live-btn {
-  flex-shrink: 0; font-size: .8rem; font-weight: 600; color: #059669;
-  background: #ecfdf5; border-radius: 6px; padding: .25rem .6rem;
+  flex-shrink: 0; font-size: .65rem; font-weight: 600; color: #059669;
+  background: #ecfdf5; border-radius: 5px; padding: .15rem .4rem;
   text-decoration: none; border: 1px solid #a7f3d0; white-space: nowrap;
 }
 .repo-live-btn:hover { background: #d1fae5; }
 
 .repo-card-lp-desc {
-  font-size: .9rem; color: #475569; line-height: 1.6; flex: 1;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: .75rem; color: #475569; line-height: 1.45; flex: 1;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 
-.repo-card-lp-tags { display: flex; flex-wrap: wrap; gap: .35rem; }
+.repo-card-lp-tags { display: flex; flex-wrap: wrap; gap: .25rem; }
 .repo-tech-tag {
-  font-size: .76rem; font-weight: 500; padding: .18rem .6rem;
+  font-size: .65rem; font-weight: 500; padding: .1rem .4rem;
   border-radius: 999px; background: #f1f5f9; color: #334155;
   border: 1px solid #e2e8f0;
 }
 
 .repo-card-lp-footer {
-  display: flex; align-items: center; gap: .5rem;
-  padding-top: .75rem; border-top: 1px solid #f1f5f9;
-  font-size: .8rem; flex-wrap: wrap;
+  display: flex; align-items: center; gap: .4rem;
+  padding-top: .4rem; border-top: 1px solid #f1f5f9;
+  font-size: .68rem; flex-wrap: wrap;
 }
 .repo-card-lp-stats { color: #64748b; }
 .repo-card-lp-date  { color: #94a3b8; margin-left: auto; }
@@ -478,14 +456,6 @@ textarea { resize: vertical; min-height: 90px; }
 }
 .repo-card-lp-link:hover { text-decoration: underline; }
 
-/* Portfolio description — show all 5 sentences, no clamp */
-.repo-card-lp-desc {
-  font-size: .92rem; color: #374151; line-height: 1.65;
-  /* override the old -webkit-line-clamp */
-  display: block !important;
-  -webkit-line-clamp: unset !important;
-  overflow: visible !important;
-}
 .repo-desc-loading { color: #94a3b8; font-style: italic; }
 
 /* ── Interactive letter inner sub-tabs ────────────── */

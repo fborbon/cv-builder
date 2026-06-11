@@ -3,8 +3,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, HTMLResponse
 from jinja2 import Environment, FileSystemLoader
-import json, base64, tempfile, re
+import json, base64, tempfile, re, time, os
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI(title="CV Builder")
 BASE_DIR = Path(__file__).parent
@@ -17,12 +20,10 @@ ui_tpl = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 pdf_env = Environment(loader=FileSystemLoader(str(BASE_DIR / "templates" / "pdf")))
 
 TEMPLATES = {
-    "classic":   "Classic",
     "modern":    "Modern",
     "executive": "Executive",
     "tech":      "Tech / Developer",
     "creative":  "Creative",
-    "minimal":   "Minimal",
 }
 
 
@@ -93,8 +94,10 @@ async def preview_cv(template_name: str):
 def _clamp_page_margins(html: str, min_mm: float = 10.0) -> str:
     """Ensure @page top/bottom margins are never below min_mm.
 
-    Handles all CSS margin shorthand forms (1–4 values) and any CSS unit
-    (including bare 0 which is treated as 0 mm).  Only touches @page blocks.
+    Handles all CSS margin shorthand forms (1–4 values) and any CSS unit.
+    A margin of exactly 0 is left untouched — that's a deliberate full-bleed
+    design (e.g. sidebar/header that spans to the page edge), not a value
+    that shrunk too far during scaling.  Only touches @page blocks.
     """
     _UNIT_TO_MM = {"mm": 1, "cm": 10, "px": 25.4 / 96, "pt": 25.4 / 72, "in": 25.4}
 
@@ -116,14 +119,19 @@ def _clamp_page_margins(html: str, min_mm: float = 10.0) -> str:
             vals_mm = [to_mm(v, u) for v, u in tokens]
             n = len(vals_mm)
 
-            # Apply min floor to top (index 0) and bottom (index 2 for n≥3, same as top for n≤2)
+            # Apply min floor to top (index 0) and bottom (index 2 for n≥3, same as top for n≤2),
+            # but leave deliberate 0 values alone (full-bleed designs).
             if n == 1:
-                vals_mm[0] = max(vals_mm[0], min_mm)
+                if vals_mm[0] != 0:
+                    vals_mm[0] = max(vals_mm[0], min_mm)
             elif n == 2:
-                vals_mm[0] = max(vals_mm[0], min_mm)   # top & bottom (same slot)
+                if vals_mm[0] != 0:
+                    vals_mm[0] = max(vals_mm[0], min_mm)   # top & bottom (same slot)
             elif n >= 3:
-                vals_mm[0] = max(vals_mm[0], min_mm)   # top
-                vals_mm[2] = max(vals_mm[2], min_mm)   # bottom
+                if vals_mm[0] != 0:
+                    vals_mm[0] = max(vals_mm[0], min_mm)   # top
+                if vals_mm[2] != 0:
+                    vals_mm[2] = max(vals_mm[2], min_mm)   # bottom
 
             return "margin: " + " ".join(f"{v:.3f}mm" for v in vals_mm) + ";"
 
@@ -191,7 +199,7 @@ def _fit_to_pages(html: str, target: int) -> str:
 
 
 @app.get("/api/generate/{template_name}")
-async def generate_pdf(template_name: str, pages: int = 0):
+async def generate_pdf(template_name: str):
     if template_name not in TEMPLATES:
         raise HTTPException(404, "Template not found")
 
@@ -199,9 +207,7 @@ async def generate_pdf(template_name: str, pages: int = 0):
     html = pdf_env.get_template(f"{template_name}.html").render(
         cv=cv, photo_b64=get_photo_b64(cv)
     )
-
-    if pages > 0:
-        html = _fit_to_pages(html, pages)
+    html = _fit_to_pages(html, 2)
 
     from weasyprint import HTML
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
@@ -210,21 +216,34 @@ async def generate_pdf(template_name: str, pages: int = 0):
     HTML(string=html, base_url=str(BASE_DIR)).write_pdf(tmp_path)
 
     name = (cv.get("personal") or {}).get("name", "cv").replace(" ", "_")
-    suffix = f"_{pages}p" if pages > 0 else ""
     return FileResponse(
         tmp_path,
         media_type="application/pdf",
-        filename=f"{name}_{template_name}{suffix}.pdf",
+        filename=f"{name}_{template_name}_2p.pdf",
     )
 
 
 # ── GitHub portfolio ──────────────────────────────────────────────────────────
+
+# In-memory TTL caches to avoid hitting GitHub's 60 req/hour unauthenticated
+# rate limit on every page load (repo list + per-repo README summaries).
+_REPOS_CACHE: dict[str, tuple[float, list]] = {}
+_REPOS_CACHE_TTL = 600  # 10 minutes
+
+_SUMMARY_CACHE: dict[str, tuple[float, str, bool]] = {}
+_SUMMARY_CACHE_TTL = 6 * 3600  # 6 hours — READMEs rarely change
+_SUMMARY_FAIL_TTL = 60         # retry sooner after a failed fetch (e.g. rate limit)
+
 
 @app.get("/api/github-repos")
 async def github_repos(username: str):
     """Proxy the GitHub public repos list — avoids CORS and hides the API call."""
     import urllib.request, urllib.error
     from starlette.concurrency import run_in_threadpool
+
+    cached = _REPOS_CACHE.get(username)
+    if cached and time.monotonic() - cached[0] < _REPOS_CACHE_TTL:
+        return cached[1]
 
     def fetch():
         url = (
@@ -261,7 +280,9 @@ async def github_repos(username: str):
             for r in data
         ]
 
-    return await run_in_threadpool(fetch)
+    result = await run_in_threadpool(fetch)
+    _REPOS_CACHE[username] = (time.monotonic(), result)
+    return result
 
 
 @app.post("/api/repo-summaries")
@@ -336,6 +357,15 @@ async def repo_summaries(request: Request):
     def summarise_repo(repo: dict) -> tuple[str, str]:
         username = repo.get("username", "")
         name     = repo["name"]
+
+        cache_key = f"{username}/{name}"
+        cached = _SUMMARY_CACHE.get(cache_key)
+        if cached:
+            ts, summary, ok = cached
+            ttl = _SUMMARY_CACHE_TTL if ok else _SUMMARY_FAIL_TTL
+            if time.monotonic() - ts < ttl:
+                return name, summary
+
         url = f"https://api.github.com/repos/{username}/{name}/readme"
         req = urllib.request.Request(
             url,
@@ -348,13 +378,17 @@ async def repo_summaries(request: Request):
                 raw    = base64.b64decode(data["content"]).decode("utf-8", errors="ignore")
                 plain  = strip_markdown(raw)
                 sents  = extract_sentences(plain)
+            fetched_ok = True
         except Exception:
             sents = []
+            fetched_ok = False
 
         if len(sents) < 5:
             sents = (sents + fallback_sentences(repo))[:5]
 
-        return name, " ".join(sents)
+        summary = " ".join(sents)
+        _SUMMARY_CACHE[cache_key] = (time.monotonic(), summary, fetched_ok)
+        return name, summary
 
     def fetch_all():
         results = {}
@@ -373,11 +407,45 @@ async def repo_summaries(request: Request):
 
 # ── Cover letter PDF ──────────────────────────────────────────────────────────
 
+_CLOSING_PHRASES = (
+    r"(?:Yours sincerely|Yours faithfully|Sincerely|Best regards|Kind regards|"
+    r"Atentamente|Saludos cordiales|Cordialmente|Un cordial saludo)"
+)
+
+
+def _strip_redundant_salutation_and_closing(body_text: str, name: str, title: str) -> str:
+    """The letter template renders its own 'Dear X,' salutation and closing
+    signature block, so strip them from the generated body text if present
+    to avoid duplication."""
+    text = body_text.strip("\n")
+
+    # Leading "Dear X," / "Estimado/a X," greeting line.
+    text = re.sub(r"^\s*(Dear|Estimad[oa](?:/a)?)\s+[^\n,]*,\s*\n+", "", text, flags=re.IGNORECASE)
+
+    # Trailing closing block: one or more "Sincerely,"/"Yours sincerely," etc.
+    # lines (the AI sometimes emits more than one), optionally followed by
+    # "Name\nTitle".
+    phrase = rf"\n+{_CLOSING_PHRASES},?\s*"
+    name_title = ""
+    if name:
+        name_title = r"\n+" + re.escape(name) + r"\s*"
+        if title:
+            name_title += rf"(\n+{re.escape(title)}\s*)?"
+    text = re.sub(rf"(?:{phrase})+{name_title}$", "", text, flags=re.IGNORECASE)
+    text = re.sub(rf"(?:{phrase})+$", "", text, flags=re.IGNORECASE)
+
+    return text.strip()
+
+
 @app.post("/api/generate-letter-pdf")
 async def generate_letter_pdf(request: Request):
     data      = await request.json()
     cv        = load_cv()
     personal  = cv.get("personal", {})
+
+    body_text = _strip_redundant_salutation_and_closing(
+        data.get("body_text", ""), personal.get("name", ""), personal.get("title", ""),
+    )
 
     html = pdf_env.get_template("letter.html").render(
         personal  = personal,
@@ -385,9 +453,11 @@ async def generate_letter_pdf(request: Request):
         company   = data.get("company", ""),
         position  = data.get("position", ""),
         recipient = data.get("recipient", "Hiring Manager"),
-        body_text = data.get("body_text", ""),
+        body_text = body_text,
         date_str  = data.get("date_str", ""),
     )
+
+    html = _fit_to_pages(html, 1)
 
     from weasyprint import HTML
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
@@ -397,3 +467,87 @@ async def generate_letter_pdf(request: Request):
     name = personal.get("name", "cover_letter").replace(" ", "_")
     return FileResponse(tmp_path, media_type="application/pdf",
                         filename=f"{name}_cover_letter.pdf")
+
+
+# ── AI letter polishing ────────────────────────────────────────────────────────
+
+@app.post("/api/polish-letter")
+async def polish_letter(request: Request):
+    """Turn itemized, possibly mis-spelled notes about past jobs and the
+    target role into a polished, elaborated, professionally-written cover
+    letter using Claude."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="ANTHROPIC_API_KEY is not configured. Add it to a .env file "
+                   "in the project root to enable AI letter polishing.",
+        )
+
+    data     = await request.json()
+    cv       = load_cv()
+    personal = cv.get("personal", {})
+    lang     = data.get("lang", "en")
+    applying = data.get("applying", {})
+    pastJobs = data.get("pastJobs", [])
+
+    lines = []
+    lines.append(f"Candidate name: {personal.get('name', '')}")
+    if personal.get("title"):
+        lines.append(f"Candidate current title: {personal['title']}")
+    lines.append(f"Target company: {applying.get('company') or '[Company]'}")
+    lines.append(f"Target position: {applying.get('position') or '[Position]'}")
+    if applying.get("why"):
+        lines.append(f"Why interested in this company (raw notes): {applying['why']}")
+    if applying.get("achievement"):
+        lines.append(f"Standout achievement for this role (raw notes): {applying['achievement']}")
+    if applying.get("unique"):
+        lines.append(f"Unique value the candidate brings (raw notes): {applying['unique']}")
+
+    for job in pastJobs:
+        notes = []
+        if job.get("impact"):
+            notes.append(f"key project/initiative: {job['impact']}")
+        if job.get("metric"):
+            notes.append(f"result/metric: {job['metric']}")
+        if job.get("skill"):
+            notes.append(f"skill developed/applied: {job['skill']}")
+        if notes:
+            header = f"Past role — {job.get('position', '')} at {job.get('company', '')}"
+            lines.append(f"{header} (raw notes): " + "; ".join(notes))
+
+    notes_block = "\n".join(lines)
+    lang_name = "Spanish" if lang == "es" else "English"
+
+    prompt = f"""You are an expert career coach writing a cover letter on behalf of a candidate.
+Below are itemized notes the candidate wrote quickly, possibly with spelling or grammar mistakes.
+Use them as the factual basis for the letter, but rewrite everything in your own polished, professional words —
+correct all spelling/grammar, and elaborate each bullet point into well-developed, specific sentences.
+
+Write the full cover letter in {lang_name}, addressed to "Hiring Manager" unless a recipient is implied,
+in a confident, professional but natural tone. Structure it as: an opening paragraph stating the role and
+interest, one or more body paragraphs weaving in the past-role achievements and skills, a paragraph on why
+this company and what unique value the candidate brings, and a closing paragraph with a call to action.
+Sign off with the candidate's name (and title if relevant).
+
+Output ONLY the letter text, with no preamble, explanation, or markdown formatting.
+
+NOTES:
+{notes_block}
+"""
+
+    try:
+        from anthropic import Anthropic
+        client = Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1500,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        letter = "".join(
+            block.text for block in response.content if getattr(block, "type", None) == "text"
+        ).strip()
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Anthropic API error: {exc}")
+
+    return {"letter": letter}

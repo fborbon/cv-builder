@@ -19,7 +19,10 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e1e
 .h-text .contacts { display: flex; flex-wrap: wrap; gap: .3rem .9rem; margin-top: .5rem; font-size: 8.5pt; opacity: .9; }
 
 /* Body */
-.body { padding: 8mm 10mm; display: grid; grid-template-columns: 1fr 1.7fr; gap: 0 1rem; }
+.body {
+  padding: 12mm 10mm 8mm; display: grid; grid-template-columns: 1fr 1.7fr; gap: 0 1rem;
+  box-decoration-break: clone; -webkit-box-decoration-break: clone;
+}
 .col {}
 
 /* Section */
@@ -40,7 +43,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e1e
 
 .summary { font-size: 9.5pt; color: #475569; line-height: 1.6; }
 
-.entry { margin-bottom: .7rem; }
+.entry { margin-bottom: .7rem; break-inside: avoid; page-break-inside: avoid; }
 .entry-title { font-weight: 700; font-size: 10pt; }
 .entry-badge {
   display: inline-block; padding: .05rem .4rem; border-radius: 99px;
@@ -115,18 +118,6 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e1e
     </div>
     {% endif %}
 
-    {% if cv.certifications %}
-    <div class="sec">
-      <div class="sec-title purple">Certifications</div>
-      {% for c in cv.certifications %}
-      <div class="entry" style="margin-bottom:.45rem">
-        <div style="font-weight:600;font-size:9pt;color:#1e1e2e">{{ c.name }}</div>
-        {% if c.issuer %}<div style="font-size:8pt;color:#94a3b8">{{ c.issuer }}{% if c.date %} · {{ c.date | replace('-','/') }}{% endif %}</div>{% endif %}
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-
   </div>
 
   <!-- RIGHT COL -->
@@ -150,7 +141,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e1e
     {% endif %}
 
     {% if cv.education %}
-    <div class="sec">
+    <div class="sec" style="break-before: page; page-break-before: always;">
       <div class="sec-title teal">Education</div>
       {% for e in cv.education %}
       <div class="entry">
@@ -160,6 +151,20 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e1e
         {% if e.description %}<div class="entry-body">{{ e.description }}</div>{% endif %}
       </div>
       {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if cv.certifications %}
+    <div class="sec">
+      <div class="sec-title purple">Certifications</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem 1rem">
+      {% for c in cv.certifications %}
+      <div class="entry" style="margin-bottom:.45rem">
+        <div style="font-weight:600;font-size:9pt;color:#1e1e2e">{{ c.name }}</div>
+        {% if c.issuer %}<div style="font-size:8pt;color:#94a3b8">{{ c.issuer }}{% if c.date %} · {{ c.date | replace('-','/') }}{% endif %}</div>{% endif %}
+      </div>
+      {% endfor %}
+      </div>
     </div>
     {% endif %}
 

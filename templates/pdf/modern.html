@@ -28,7 +28,10 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e29
 .skill-bar { background: #60a5fa; border-radius: 99px; height: 5px; }
 
 /* Right column */
-.right { flex: 1; padding: 10mm 8mm; }
+.right {
+  flex: 1; padding: 14mm 8mm 10mm;
+  box-decoration-break: clone; -webkit-box-decoration-break: clone;
+}
 
 .section { margin-bottom: 1rem; }
 .sec-title {
@@ -39,7 +42,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e29
 
 .summary { font-size: 9.5pt; color: #475569; line-height: 1.55; }
 
-.entry { margin-bottom: .75rem; }
+.entry { margin-bottom: .75rem; break-inside: avoid; page-break-inside: avoid; }
 .entry-row { display: flex; justify-content: space-between; align-items: baseline; }
 .entry-title { font-weight: 700; font-size: 10pt; color: #0f172a; }
 .entry-date  { font-size: 8.5pt; color: #64748b; white-space: nowrap; background: #f1f5f9; padding: .1rem .4rem; border-radius: 99px; }
@@ -126,7 +129,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; color: #1e29
 
   <!-- Education -->
   {% if cv.education %}
-  <div class="section">
+  <div class="section" style="break-before: page; page-break-before: always;">
     <div class="sec-title">Education</div>
     {% for e in cv.education %}
     <div class="entry">
