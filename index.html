@@ -132,10 +132,13 @@ textarea { resize: vertical; min-height: 90px; }
 .brand-tab.active { background: rgba(255,255,255,.14); }
 
 /* ── Cover Letter ─────────────────────────────────── */
-.letter-container { max-width: 900px; margin: 0 auto; padding: 2rem; }
-.letter-grid { display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; align-items: start; }
+.letter-container { max-width: 1460px; margin: 0 auto; padding: 2rem 2rem; }
+/* The empty 3rd column mirrors the sidebar's width so the main column
+   sits on the page's centerline, with the meta sidebar pushed out to the left. */
+.letter-grid { display: grid; grid-template-columns: 260px 1fr 260px; gap: 1.5rem; align-items: start; }
 .letter-meta-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.2rem; }
 .letter-meta-card .form-group { margin-bottom: .9rem; }
+.letter-meta-card .form-group:last-child { margin-bottom: 0; }
 .form-check label { display: flex; align-items: center; gap: .4rem; font-weight: 600; cursor: pointer; }
 .form-check input[type="checkbox"] { width: 16px; height: 16px; }
 .qa-list { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
