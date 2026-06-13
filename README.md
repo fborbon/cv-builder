@@ -1,6 +1,6 @@
 # CV Builder
 
-**[▶ Live Demo](https://fborbon.github.io/cv-builder)**
+**[▶ Live Demo](https://www.forwardforecasting.eu/cv-builder/)**
 
 A local web application for building, previewing, and exporting a professional CV as a PDF — with cover letter generation and a GitHub portfolio tab.
 
@@ -26,7 +26,7 @@ Open [http://localhost:8000](http://localhost:8000).
 
 ## Demo
 
-**[https://fborbon.github.io/cv-builder](https://fborbon.github.io/cv-builder)** — open in any browser, no server required.  
+**[https://www.forwardforecasting.eu/cv-builder/](https://www.forwardforecasting.eu/cv-builder/)** — open in any browser, no server required.  
 All menus, modals, and tabs are fully navigable with sample data pre-loaded.  
 PDF generation and live preview require the server to be running locally.
 

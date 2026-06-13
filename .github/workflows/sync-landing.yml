@@ -1,5 +1,7 @@
-# Required GitHub secret:
-#   GH_PAT — personal access token with repo write scope on forwardforecasting-landing
+# Required GitHub secrets:
+#   GH_PAT      — personal access token with repo write scope on forwardforecasting-landing
+#   EC2_SSH_KEY — private key for ubuntu@<EC2_HOST>, authorised on /var/www/forwardforecasting
+#   EC2_HOST    — EC2 host serving forwardforecasting.eu
 
 name: Sync static demo to Landing
 
@@ -36,3 +38,12 @@ jobs:
           git diff --cached --quiet && echo "No changes" && exit 0
           git commit -m "sync: update cv-builder demo from source repo"
           git push
+
+      - name: Deploy to forwardforecasting.eu
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+          scp -i ~/.ssh/deploy_key index.html \
+            ubuntu@${{ secrets.EC2_HOST }}:/var/www/forwardforecasting/cv-builder/index.html
