@@ -610,7 +610,7 @@ let cv = {
     github: "https://github.com/alexmorgan",
     website: "https://alexmorgan.dev",
     summary: "Data scientist with 8+ years of experience building production ML systems and analytics platforms across fintech, e-commerce, and healthcare. Passionate about turning messy data into clear, actionable decisions.",
-    photo: null
+    photo: "https://www.superhero-therapy.com/wp-content/uploads/2015/02/christopher-reeve-superman.jpg"
   },
   experience: [
     { id:"e1", company:"Stripe", position:"Senior Data Scientist", start_date:"2021-03", end_date:null, current:true, location:"San Francisco, CA", description:"Led fraud detection model overhaul, reducing false positives by 34% while catching 12% more fraud. Built real-time feature pipeline processing 50k events/sec. Mentored a team of 4 junior data scientists and drove adoption of standardised ML evaluation practices." },
@@ -767,6 +767,11 @@ function renderPersonal() {
   document.getElementById('p-github').value   = p.github   || '';
   document.getElementById('p-website').value  = p.website  || '';
   document.getElementById('p-summary').value  = p.summary  || '';
+
+  const photoWrap = document.getElementById('photo-preview-wrap');
+  photoWrap.innerHTML = p.photo
+    ? `<img class="photo-preview" src="${p.photo}" alt="Profile photo">`
+    : '<div class="photo-placeholder">👤</div>';
 }
 
 function savePersonal() {
